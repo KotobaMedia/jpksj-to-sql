@@ -16,14 +16,19 @@ pub struct DownloadedFile {
     pub path: PathBuf,
 }
 
-pub async fn download_to_tmp(tmp: PathBuf, url: Url) -> Result<DownloadedFile> {
-    // Extract the filename from the URL's path segments.
+pub fn path_for_url(tmp: &PathBuf, url: &Url) -> (PathBuf, PathBuf) {
     let filename = url
         .path_segments()
         .and_then(|segments| segments.last())
-        .ok_or_else(|| anyhow::anyhow!("Couldn't get filename from URL"))?;
-    let file_path = tmp.join(filename);
-    let meta_path = tmp.join(format!("{}.meta.json", filename));
+        .unwrap_or("file");
+    (
+        tmp.join(filename),
+        tmp.join(format!("{}.meta.json", filename)),
+    )
+}
+
+pub async fn download_to_tmp(tmp: &PathBuf, url: &Url) -> Result<DownloadedFile> {
+    let (file_path, meta_path) = path_for_url(&tmp, &url);
 
     // Try to read existing metadata if it exists.
     let metadata: Option<Metadata> = if let Ok(meta_content) = fs::read_to_string(&meta_path).await
@@ -34,7 +39,7 @@ pub async fn download_to_tmp(tmp: PathBuf, url: Url) -> Result<DownloadedFile> {
     };
 
     let client = reqwest::Client::new();
-    let mut request = client.get(url);
+    let mut request = client.get(url.clone());
 
     // Add conditional headers if metadata is available.
     if let Some(meta) = &metadata {

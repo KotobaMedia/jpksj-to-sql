@@ -1,4 +1,4 @@
-use crate::scraper::downloader;
+use crate::downloader;
 use anyhow::Result;
 use async_channel::unbounded;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
@@ -8,7 +8,7 @@ use tokio::task;
 
 use super::data_page::DataItem;
 
-const DL_QUEUE_SIZE: usize = 10;
+const DL_QUEUE_SIZE: usize = 15;
 
 struct PBStatusUpdateMsg {
     added: u64,
@@ -23,7 +23,7 @@ pub struct DownloadQueue {
 }
 
 impl DownloadQueue {
-    pub fn new(tmp: PathBuf) -> Self {
+    pub fn new(tmp: &PathBuf) -> Self {
         let (pb_status_sender, pb_status_receiver) = unbounded::<PBStatusUpdateMsg>();
         let (sender, receiver) = unbounded::<DataItem>();
         let mut set = task::JoinSet::new();
@@ -35,7 +35,7 @@ impl DownloadQueue {
                 while let Ok(item) = receiver.recv().await {
                     // println!("Downloading: {}", url);
                     let url = item.file_url;
-                    downloader::download_to_tmp(tmp.clone(), url).await.unwrap();
+                    downloader::download_to_tmp(&tmp, &url).await.unwrap();
                     pb_sender
                         .send(PBStatusUpdateMsg {
                             added: 0,
@@ -97,9 +97,6 @@ impl DownloadQueue {
         let Some(_) = self.pb_status_sender.take() else {
             return Err(anyhow::anyhow!("DownloadQueue is already closed"));
         };
-        // let Some(status) = self.status.take() else {
-        //     return Err(anyhow::anyhow!("DownloadQueue is already closed"));
-        // };
         set.join_all().await;
         Ok(())
     }

@@ -2,7 +2,7 @@ use anyhow::Result;
 use regex::Regex;
 use url::Url;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataItem {
     pub category1_name: String,
     pub category2_name: String,

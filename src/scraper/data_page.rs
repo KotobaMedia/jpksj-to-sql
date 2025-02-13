@@ -14,7 +14,7 @@ pub struct DataPage {
     pub items: Vec<DataItem>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataItem {
     pub area: String,
     pub crs: String,
@@ -24,11 +24,12 @@ pub struct DataItem {
     pub file_url: Url,
 }
 
-pub async fn scrape(url: Url) -> Result<DataPage> {
+pub async fn scrape(url: &Url) -> Result<DataPage> {
     let response = reqwest::get(url.clone()).await?;
     let body = response.text().await?;
     let document = scraper::Html::parse_document(&body);
-    let data_tr_sel = scraper::Selector::parse("table.dataTables tr").unwrap();
+    let data_tr_sel =
+        scraper::Selector::parse("table.dataTables tr, table.dataTables-mesh tr").unwrap();
 
     let data_path_re = Regex::new(r"javascript:DownLd\('[^']*',\s*'[^']*',\s*'([^']+)'").unwrap();
 
@@ -95,7 +96,10 @@ pub async fn scrape(url: Url) -> Result<DataPage> {
         items.push(item);
     }
 
-    Ok(DataPage { url, items })
+    Ok(DataPage {
+        url: url.clone(),
+        items,
+    })
 }
 
 /// Extracts the numeric year from a field formatted like "2006年（平成18年）".
@@ -170,7 +174,7 @@ mod tests {
     async fn test_scrape() {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
-        let page = scrape(url).await.unwrap();
+        let page = scrape(&url).await.unwrap();
         println!("{:?}", page);
         // assert_eq!(page.items.len(), 47);
     }

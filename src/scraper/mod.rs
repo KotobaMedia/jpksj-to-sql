@@ -1,23 +1,41 @@
-use std::path::PathBuf;
-
+// The scraper module is responsible for downloading the data from the website.
 use anyhow::Result;
+use std::{path::PathBuf, sync::Arc};
+
+use crate::downloader::path_for_url;
 
 mod data_page;
 mod download_queue;
-mod downloader;
 mod initial;
 
-pub async fn download_all(tmp: PathBuf) -> Result<()> {
-    let mut dl_queue = download_queue::DownloadQueue::new(tmp.clone());
+pub struct Dataset {
+    pub item: data_page::DataItem,
+    pub initial_item: initial::DataItem,
+    pub page: Arc<data_page::DataPage>,
+    pub zip_file_path: PathBuf,
+}
+
+pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> {
+    let mut dl_queue = download_queue::DownloadQueue::new(&tmp);
     let initial = initial::scrape().await?;
     let data_items = initial.data;
-    for item in data_items {
-        let page = data_page::scrape(item.url).await?;
-        let items = data_page::filter_data_items(page.items);
+    let mut out: Vec<Dataset> = Vec::new();
+    for initial_item in data_items {
+        let page = Arc::new(data_page::scrape(&initial_item.url).await?);
+        let items = data_page::filter_data_items(page.items.clone());
         for item in items {
-            dl_queue.push(item).await?;
+            let expected_path = path_for_url(&tmp, &item.file_url);
+            out.push(Dataset {
+                item: item.clone(),
+                initial_item: initial_item.clone(),
+                page: page.clone(),
+                zip_file_path: expected_path.0,
+            });
+            if !skip_dl {
+                dl_queue.push(item).await?;
+            }
         }
     }
     dl_queue.close().await?;
-    Ok(())
+    Ok(out)
 }
