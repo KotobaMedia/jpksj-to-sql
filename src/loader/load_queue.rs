@@ -21,9 +21,7 @@ async fn load(
     // first, let's get the entry for this dataset from the mapping file
     let mapping = mapping::find_mapping_def_for_entry(&tmp, &dataset.page.identifier)
         .await?
-        .ok_or_else(|| {
-            anyhow::anyhow!("No mapping found for dataset: {:?}", dataset.initial_item)
-        })?;
+        .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset: {}", dataset))?;
 
     println!(
         "Loading dataset: {} - {} - {} as {}",
@@ -78,9 +76,10 @@ impl LoadQueue {
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
                     // println!("processor {} loading", _i);
-                    load(&tmp, &item, &postgres_url, skip_if_exists)
-                        .await
-                        .unwrap();
+                    let result = load(&tmp, &item, &postgres_url, skip_if_exists).await;
+                    if let Err(e) = result {
+                        eprintln!("Error in loading dataset, skipping... {:?}", e);
+                    }
                     pb_sender
                         .send(PBStatusUpdateMsg {
                             added: 0,

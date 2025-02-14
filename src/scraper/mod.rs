@@ -1,6 +1,6 @@
 // The scraper module is responsible for downloading the data from the website.
 use anyhow::Result;
-use std::{path::PathBuf, sync::Arc};
+use std::{fmt, path::PathBuf, sync::Arc};
 
 use crate::downloader::path_for_url;
 
@@ -14,6 +14,17 @@ pub struct Dataset {
     pub initial_item: initial::DataItem,
     pub page: Arc<data_page::DataPage>,
     pub zip_file_paths: Vec<PathBuf>,
+}
+
+impl fmt::Display for Dataset {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Dataset identifier={} url={}",
+            self.page.identifier,
+            self.page.url.to_string()
+        )
+    }
 }
 
 pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> {
