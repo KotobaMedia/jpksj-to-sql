@@ -37,7 +37,8 @@ async fn load(
         shapefiles.extend(shapefiles_in_zip);
     }
 
-    if skip_if_exists && gdal::has_layer(postgres_url, &mapping.identifier).await? {
+    let has_layer = gdal::has_layer(postgres_url, &mapping.identifier).await?;
+    if skip_if_exists && has_layer {
         println!("Table already exists, skipping");
         return Ok(());
     }

@@ -81,11 +81,13 @@ pub async fn load_to_postgres(vrt: &PathBuf, postgres_url: &str) -> Result<()> {
 }
 
 pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
+    let layer_name_lower = layer_name.to_lowercase();
     let output = Command::new("ogrinfo")
         .arg("-if")
+        .arg("postgresql")
         .arg(postgres_url)
         .arg("-sql")
-        .arg(&format!("SELECT 1 FROM {} LIMIT 1", layer_name))
+        .arg(&format!("SELECT 1 FROM \"{}\" LIMIT 1", layer_name_lower))
         .output()
         .await?;
 
