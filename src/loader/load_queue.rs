@@ -4,7 +4,7 @@ use crate::scraper::Dataset;
 use anyhow::Result;
 use async_channel::unbounded;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::cmp::min;
+use std::cmp::max;
 use std::path::PathBuf;
 use tokio::task;
 
@@ -67,14 +67,15 @@ impl LoadQueue {
         let (pb_status_sender, pb_status_receiver) = unbounded::<PBStatusUpdateMsg>();
         let (sender, receiver) = unbounded::<Dataset>();
         let mut set = task::JoinSet::new();
-        let size = min(num_cpus::get_physical() / 2, 1);
-        for _ in 0..size {
+        let size = max(num_cpus::get_physical() / 2, 1);
+        for _i in 0..size {
             let receiver = receiver.clone();
             let pb_sender = pb_status_sender.clone();
             let postgres_url = postgres_url.to_string();
             let tmp = tmp.clone();
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
+                    // println!("processor {} loading", _i);
                     load(&tmp, &item, &postgres_url, skip_if_exists)
                         .await
                         .unwrap();
