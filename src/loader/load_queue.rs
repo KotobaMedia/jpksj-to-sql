@@ -6,6 +6,7 @@ use async_channel::unbounded;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::cmp::max;
 use std::path::PathBuf;
+use std::time::Duration;
 use tokio::task;
 
 async fn load(
@@ -99,6 +100,7 @@ impl LoadQueue {
                 .unwrap()
                 .progress_chars("=>-"),
             );
+            pb.enable_steady_tick(Duration::from_millis(300));
             let mut length = 0;
             let mut position = 0;
             while let Ok(msg) = pb_status_receiver.recv().await {

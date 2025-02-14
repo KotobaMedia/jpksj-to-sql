@@ -23,6 +23,9 @@ pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> 
     let mut out: Vec<Dataset> = Vec::new();
     for initial_item in data_items {
         let page = Arc::new(data_page::scrape(&initial_item.url).await?);
+        if initial_item.usage == "非商用" {
+            continue;
+        }
         let items = data_page::filter_data_items(page.items.clone());
         let mut zip_file_paths: Vec<PathBuf> = Vec::new();
         for item in items {

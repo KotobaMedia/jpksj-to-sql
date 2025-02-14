@@ -4,6 +4,7 @@ use async_channel::unbounded;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use std::fmt::Write;
 use std::path::PathBuf;
+use std::time::Duration;
 use tokio::task;
 
 use super::data_page::DataItem;
@@ -54,6 +55,7 @@ impl DownloadQueue {
                 .unwrap()
                 .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
                 .progress_chars("=>-"));
+            pb.enable_steady_tick(Duration::from_millis(300));
             let mut length = 0;
             let mut position = 0;
             while let Ok(msg) = pb_status_receiver.recv().await {
