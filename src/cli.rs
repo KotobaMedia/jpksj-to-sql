@@ -9,13 +9,18 @@ pub struct Cli {
 
     /// 中間ファイルの保存先 (Zip等)
     /// デフォルトは `./tmp` となります。
-    #[arg(short, long)]
+    #[arg(long)]
     pub tmp_dir: Option<PathBuf>,
 
     /// データのダウンロードをスキップします
     /// データが存在しない場合はスキップされます
-    #[arg(short, long, default_value = "false")]
+    #[arg(long, default_value = "false")]
     pub skip_download: bool,
+
+    /// 既に存在するテーブルをスキップします
+    /// プロセスが途中で中断された場合、テーブルが中途半端な状態にある可能性があります
+    #[arg(long, default_value = "false")]
+    pub skip_sql_if_exists: bool,
 }
 
 pub fn main() -> Cli {

@@ -2,6 +2,7 @@ use anyhow::Result;
 use bytesize::ByteSize;
 use once_cell::sync::Lazy;
 use regex::Regex;
+use scraper::{Element, Html, Selector};
 use url::Url;
 
 // Compile the regex once for efficiency.
@@ -11,6 +12,7 @@ static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap())
 #[derive(Debug)]
 pub struct DataPage {
     pub url: Url,
+    pub identifier: String,
     pub items: Vec<DataItem>,
 }
 
@@ -27,16 +29,31 @@ pub struct DataItem {
 pub async fn scrape(url: &Url) -> Result<DataPage> {
     let response = reqwest::get(url.clone()).await?;
     let body = response.text().await?;
-    let document = scraper::Html::parse_document(&body);
-    let data_tr_sel =
-        scraper::Selector::parse("table.dataTables tr, table.dataTables-mesh tr").unwrap();
+    let document = Html::parse_document(&body);
+
+    let mut identifier: Option<String> = None;
+    let identifier_tr_sel = Selector::parse("table tr").unwrap();
+    let th_or_td_sel = Selector::parse("th, td").unwrap();
+    let td_sel = Selector::parse("td").unwrap();
+    for row in document.select(&identifier_tr_sel) {
+        let Some(th) = row.select(&th_or_td_sel).next() else {
+            continue;
+        };
+        let th_text = th.text().collect::<String>();
+        if th_text.trim() == "識別子" {
+            let td = th.next_sibling_element().unwrap();
+            let identifier_str = td.text().collect::<String>().trim().to_string();
+            identifier = Some(identifier_str);
+        }
+    }
+
+    let data_tr_sel = Selector::parse("table.dataTables tr, table.dataTables-mesh tr").unwrap();
 
     let data_path_re = Regex::new(r"javascript:DownLd\('[^']*',\s*'[^']*',\s*'([^']+)'").unwrap();
 
     let mut items: Vec<DataItem> = Vec::new();
     let mut use_nendo = false;
     for row in document.select(&data_tr_sel) {
-        let td_sel = scraper::Selector::parse("td").unwrap();
         let tds = row.select(&td_sel).collect::<Vec<_>>();
         if tds.len() == 0 {
             continue;
@@ -69,7 +86,7 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
         // if we couldn't parse the bytes, we'll just use 10MB as a default. It's just used for progress.
         let bytes: ByteSize = bytes_str.parse().unwrap_or_else(|_| ByteSize::mb(10));
         let Some(file_js_onclick) = tds[5]
-            .select(&scraper::Selector::parse("a").unwrap())
+            .select(&Selector::parse("a").unwrap())
             .next()
             .and_then(|a| a.value().attr("onclick"))
         else {
@@ -98,6 +115,7 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
 
     Ok(DataPage {
         url: url.clone(),
+        identifier: identifier.ok_or_else(|| anyhow::anyhow!("No identifier found for {}", url))?,
         items,
     })
 }
@@ -175,6 +193,7 @@ mod tests {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
         let page = scrape(&url).await.unwrap();
+        assert_eq!(page.identifier, "C23");
         println!("{:?}", page);
         // assert_eq!(page.items.len(), 47);
     }

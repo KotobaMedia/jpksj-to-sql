@@ -8,11 +8,12 @@ mod data_page;
 mod download_queue;
 mod initial;
 
+#[derive(Clone)]
 pub struct Dataset {
-    pub item: data_page::DataItem,
+    // pub item: data_page::DataItem,
     pub initial_item: initial::DataItem,
     pub page: Arc<data_page::DataPage>,
-    pub zip_file_path: PathBuf,
+    pub zip_file_paths: Vec<PathBuf>,
 }
 
 pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> {
@@ -23,18 +24,19 @@ pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> 
     for initial_item in data_items {
         let page = Arc::new(data_page::scrape(&initial_item.url).await?);
         let items = data_page::filter_data_items(page.items.clone());
+        let mut zip_file_paths: Vec<PathBuf> = Vec::new();
         for item in items {
             let expected_path = path_for_url(&tmp, &item.file_url);
-            out.push(Dataset {
-                item: item.clone(),
-                initial_item: initial_item.clone(),
-                page: page.clone(),
-                zip_file_path: expected_path.0,
-            });
+            zip_file_paths.push(expected_path.0);
             if !skip_dl {
                 dl_queue.push(item).await?;
             }
         }
+        out.push(Dataset {
+            initial_item,
+            page,
+            zip_file_paths,
+        });
     }
     dl_queue.close().await?;
     Ok(out)

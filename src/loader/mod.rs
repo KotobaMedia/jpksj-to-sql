@@ -5,32 +5,20 @@ use anyhow::Result;
 use std::path::PathBuf;
 
 mod gdal;
+mod load_queue;
 mod mapping;
 mod zip_traversal;
 
-pub async fn load(tmp: &PathBuf, dataset: &Dataset, postgres_url: &str) -> Result<()> {
-    // first, let's get the entry for this dataset from the mapping file
-    let mapping = mapping::find_mapping_def_for_entry(
-        &tmp,
-        &dataset.initial_item.category1_name,
-        &dataset.initial_item.category2_name,
-        &dataset.initial_item.name,
-    )
-    .await?
-    .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset"))?;
-
-    println!(
-        "Loading dataset: {} - {} - {}",
-        mapping.cat1, mapping.cat2, mapping.name
-    );
-
-    let shapefiles =
-        zip_traversal::matching_shapefiles_in_zip(&tmp, &dataset.zip_file_path, &mapping).await?;
-
-    for shapefile in shapefiles {
-        let vrt_path = gdal::create_vrt(&shapefile, &mapping).await?;
-        gdal::load_to_postgres(&vrt_path, postgres_url).await?;
+pub async fn load_all(
+    tmp: &PathBuf,
+    datasets: &Vec<Dataset>,
+    postgres_url: &str,
+    skip_if_exists: bool,
+) -> Result<()> {
+    let mut load_queue = load_queue::LoadQueue::new(tmp, postgres_url, skip_if_exists);
+    for dataset in datasets {
+        load_queue.push(dataset).await?;
     }
-
+    load_queue.close().await?;
     Ok(())
 }

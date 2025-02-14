@@ -181,14 +181,12 @@ pub async fn mapping_defs(tmp: &PathBuf) -> Result<&Vec<ShapefileMetadata>> {
 
 pub async fn find_mapping_def_for_entry(
     tmp: &PathBuf,
-    cat1: &str,
-    cat2: &str,
-    name: &str,
+    identifier: &str,
 ) -> Result<Option<ShapefileMetadata>> {
     let defs = mapping_defs(&tmp).await?;
     Ok(defs
         .iter()
-        .find(|def| def.cat1 == cat1 && def.cat2 == cat2 && def.name == name)
+        .find(|def| def.identifier == identifier)
         .cloned())
 }
 

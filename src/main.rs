@@ -1,6 +1,8 @@
+#![warn(unused_extern_crates)]
+
 use std::path::PathBuf;
 
-use anyhow::{Ok, Result};
+use anyhow::{Context, Ok, Result};
 
 mod cli;
 mod downloader;
@@ -15,10 +17,13 @@ async fn main() -> Result<()> {
     // println!("Postgres URL: {}", args.postgres_url);
 
     // Download all files first
-    let datasets = scraper::download_all(&tmp, args.skip_download).await?;
-    for dataset in datasets {
-        loader::load(&tmp, &dataset, &args.postgres_url).await?;
-    }
+    let datasets = scraper::download_all(&tmp, args.skip_download)
+        .await
+        .with_context(|| format!("while downloading initial data"))?;
+
+    loader::load_all(&tmp, &datasets, &args.postgres_url, args.skip_sql_if_exists)
+        .await
+        .with_context(|| "while loading datasets")?;
 
     Ok(())
 }
