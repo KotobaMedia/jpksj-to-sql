@@ -3,7 +3,6 @@ use anyhow::Result;
 use async_channel::unbounded;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use std::fmt::Write;
-use std::path::PathBuf;
 use std::time::Duration;
 use tokio::task;
 

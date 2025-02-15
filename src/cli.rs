@@ -4,7 +4,7 @@ use clap::Parser;
 
 #[derive(Parser)]
 pub struct Cli {
-    /// Postgresデータベースに接続する文字列。 ogr2ogr に渡されます。
+    /// Postgresデータベースに接続する文字列。 ogr2ogr に渡されます。冒頭の `PG:` は省略してください。
     pub postgres_url: String,
 
     /// 中間ファイルの保存先 (Zip等)

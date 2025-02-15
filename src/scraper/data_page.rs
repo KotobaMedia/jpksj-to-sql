@@ -3,20 +3,21 @@ use bytesize::ByteSize;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use scraper::{Element, Html, Selector};
+use serde::Serialize;
 use url::Url;
 
 // Compile the regex once for efficiency.
 // This regex looks for one or more digits at the very start of the string, immediately followed by '年'.
 static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap());
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct DataPage {
     pub url: Url,
     pub identifier: String,
     pub items: Vec<DataItem>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DataItem {
     pub area: String,
     pub crs: String,

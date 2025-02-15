@@ -1,8 +1,9 @@
 use anyhow::Result;
 use regex::Regex;
+use serde::Serialize;
 use url::Url;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DataItem {
     pub category1_name: String,
     pub category2_name: String,

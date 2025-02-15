@@ -8,6 +8,7 @@ mod cli;
 mod context;
 mod downloader;
 mod loader;
+mod metadata;
 mod scraper;
 
 #[tokio::main]

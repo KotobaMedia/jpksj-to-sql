@@ -1,6 +1,7 @@
 use crate::context;
 use crate::loader::gdal;
 use crate::loader::{mapping, zip_traversal};
+use crate::metadata::MetadataConnection;
 use crate::scraper::Dataset;
 use anyhow::Result;
 use async_channel::unbounded;
@@ -12,7 +13,12 @@ use tokio::task;
 
 use super::Loader;
 
-async fn load(dataset: &Dataset, postgres_url: &str, skip_if_exists: bool) -> Result<()> {
+async fn load(
+    dataset: &Dataset,
+    postgres_url: &str,
+    skip_if_exists: bool,
+    metadata_conn: &MetadataConnection,
+) -> Result<()> {
     let tmp = context::tmp();
     let vrt_tmp = tmp.join("vrt");
     tokio::fs::create_dir_all(&vrt_tmp).await?;
@@ -46,6 +52,7 @@ async fn load(dataset: &Dataset, postgres_url: &str, skip_if_exists: bool) -> Re
     gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
     gdal::load_to_postgres(&vrt_path, postgres_url).await?;
 
+    metadata_conn.create_dataset(dataset).await?;
     Ok(())
 }
 
@@ -62,12 +69,14 @@ pub struct LoadQueue {
 }
 
 impl LoadQueue {
-    pub fn new(loader: &Loader) -> Self {
+    pub async fn new(loader: &Loader) -> Result<Self> {
         let Loader {
             postgres_url,
             skip_if_exists,
             ..
         } = loader;
+
+        let metadata_conn = MetadataConnection::new(postgres_url).await?;
 
         let (pb_status_sender, pb_status_receiver) = unbounded::<PBStatusUpdateMsg>();
         let (sender, receiver) = unbounded::<Dataset>();
@@ -78,10 +87,11 @@ impl LoadQueue {
             let pb_sender = pb_status_sender.clone();
             let postgres_url = postgres_url.to_string();
             let skip_if_exists = *skip_if_exists;
+            let metadata_conn = metadata_conn.clone();
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
                     // println!("processor {} loading", _i);
-                    let result = load(&item, &postgres_url, skip_if_exists).await;
+                    let result = load(&item, &postgres_url, skip_if_exists, &metadata_conn).await;
                     if let Err(e) = result {
                         eprintln!("Error in loading dataset, skipping... {:?}", e);
                     }
@@ -116,11 +126,12 @@ impl LoadQueue {
             }
             pb.finish_with_message("ダウンロードが終了しました。");
         });
-        Self {
+
+        Ok(Self {
             pb_status_sender: Some(pb_status_sender),
             sender: Some(sender),
             set: Some(set),
-        }
+        })
     }
 
     pub async fn push(&self, item: &Dataset) -> Result<()> {

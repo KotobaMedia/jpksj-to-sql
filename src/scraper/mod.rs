@@ -4,9 +4,9 @@ use std::{fmt, path::PathBuf, sync::Arc};
 
 use crate::downloader::path_for_url;
 
-mod data_page;
+pub mod data_page;
 mod download_queue;
-mod initial;
+pub mod initial;
 
 #[derive(Clone)]
 pub struct Dataset {

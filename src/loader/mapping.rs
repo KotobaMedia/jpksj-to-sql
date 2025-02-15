@@ -1,4 +1,4 @@
-use std::{path::PathBuf, vec};
+use std::vec;
 
 // the module responsible for mapping shapefile field names to database column names.
 // this module also can recognize the metadata of the shapefile
@@ -192,6 +192,7 @@ pub async fn find_mapping_def_for_entry(identifier: &str) -> Result<Option<Shape
 #[cfg(test)]
 mod tests {
     use crate::context::set_tmp;
+    use std::path::PathBuf;
 
     use super::*;
 

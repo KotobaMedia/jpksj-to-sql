@@ -18,7 +18,7 @@ pub struct Loader {
 
 impl Loader {
     pub async fn load_all(self) -> Result<()> {
-        let mut load_queue = load_queue::LoadQueue::new(&self);
+        let mut load_queue = load_queue::LoadQueue::new(&self).await?;
         for dataset in self.datasets {
             load_queue.push(&dataset).await?;
         }
