@@ -21,6 +21,12 @@ pub struct Cli {
     /// プロセスが途中で中断された場合、テーブルが中途半端な状態にある可能性があります
     #[arg(long, default_value = "false")]
     pub skip_sql_if_exists: bool,
+
+    /// 読み込むデータセットの識別子
+    /// 指定しない場合は全てのデータセットが読み込まれます
+    /// 複数指定する場合は `,` で区切ってください
+    #[arg(long, value_delimiter = ',')]
+    pub filter_identifiers: Option<Vec<String>>,
 }
 
 pub fn main() -> Cli {

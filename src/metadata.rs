@@ -23,7 +23,7 @@ impl MetadataConnection {
             }
         });
         client
-            .query(INIT_SQL, &[])
+            .simple_query(INIT_SQL) // we use simple_query because we are running
             .await
             .with_context(|| "when initializing PostgreSQL schema")?;
         Ok(MetadataConnection {
@@ -37,10 +37,11 @@ impl MetadataConnection {
             data_item: &dataset.initial_item,
             data_page: &dataset.page,
         };
+        let metadata_value = serde_json::to_value(metadata)?;
         self.client
             .execute(
-                "INSERT INTO datasets (table_name, metadata) VALUES ($1, $2)",
-                &[&lowercase_identifier, &serde_json::to_string(&metadata)?],
+                "INSERT INTO datasets (table_name, metadata) VALUES ($1, $2) ON CONFLICT (table_name) DO UPDATE SET metadata = EXCLUDED.metadata",
+                &[&lowercase_identifier, &metadata_value],
             )
             .await
             .with_context(|| "when inserting dataset into PostgreSQL")?;

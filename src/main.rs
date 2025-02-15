@@ -19,7 +19,13 @@ async fn main() -> Result<()> {
     tokio::fs::create_dir_all(context::tmp()).await?;
 
     // Download all files first
-    let datasets = scraper::download_all(args.skip_download)
+    let scraper = scraper::ScraperBuilder::default()
+        .skip_dl(args.skip_download)
+        .filter_identifiers(args.filter_identifiers.clone())
+        .build()
+        .context("while building scraper")?;
+    let datasets = scraper
+        .download_all()
         .await
         .with_context(|| format!("while downloading initial data"))?;
 

@@ -1633,6 +1633,8 @@ dependencies = [
  "fallible-iterator",
  "geo-types",
  "postgres-protocol",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
