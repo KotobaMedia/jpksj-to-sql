@@ -146,7 +146,9 @@ async fn parse_mapping_file(tmp: &PathBuf) -> Result<Vec<ShapefileMetadata>> {
             builder.data_year(data_year);
         }
         if let Some(identifier) = data_to_string(&row[8]) {
-            builder.identifier(identifier);
+            if builder.identifier.is_none() {
+                builder.identifier(identifier);
+            }
         }
         if let Some(shapefile_matcher) = data_to_string(&row[5]) {
             let mut matchers = builder.shapefile_matcher.clone().unwrap_or(vec![]);
