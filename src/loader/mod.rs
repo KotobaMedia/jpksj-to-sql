@@ -2,23 +2,27 @@
 
 use crate::scraper::Dataset;
 use anyhow::Result;
-use std::path::PathBuf;
+use derive_builder::Builder;
 
 mod gdal;
 mod load_queue;
 mod mapping;
 mod zip_traversal;
 
-pub async fn load_all(
-    tmp: &PathBuf,
-    datasets: &Vec<Dataset>,
-    postgres_url: &str,
+#[derive(Builder)]
+pub struct Loader {
+    datasets: Vec<Dataset>,
+    postgres_url: String,
     skip_if_exists: bool,
-) -> Result<()> {
-    let mut load_queue = load_queue::LoadQueue::new(tmp, postgres_url, skip_if_exists);
-    for dataset in datasets {
-        load_queue.push(dataset).await?;
+}
+
+impl Loader {
+    pub async fn load_all(self) -> Result<()> {
+        let mut load_queue = load_queue::LoadQueue::new(&self);
+        for dataset in self.datasets {
+            load_queue.push(&dataset).await?;
+        }
+        load_queue.close().await?;
+        Ok(())
     }
-    load_queue.close().await?;
-    Ok(())
 }

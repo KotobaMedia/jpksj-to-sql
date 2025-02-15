@@ -27,8 +27,8 @@ impl fmt::Display for Dataset {
     }
 }
 
-pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> {
-    let mut dl_queue = download_queue::DownloadQueue::new(&tmp);
+pub async fn download_all(skip_dl: bool) -> Result<Vec<Dataset>> {
+    let mut dl_queue = download_queue::DownloadQueue::new();
     let initial = initial::scrape().await?;
     let data_items = initial.data;
     let mut out: Vec<Dataset> = Vec::new();
@@ -40,7 +40,7 @@ pub async fn download_all(tmp: &PathBuf, skip_dl: bool) -> Result<Vec<Dataset>> 
         let items = data_page::filter_data_items(page.items.clone());
         let mut zip_file_paths: Vec<PathBuf> = Vec::new();
         for item in items {
-            let expected_path = path_for_url(&tmp, &item.file_url);
+            let expected_path = path_for_url(&item.file_url);
             zip_file_paths.push(expected_path.0);
             if !skip_dl {
                 dl_queue.push(item).await?;

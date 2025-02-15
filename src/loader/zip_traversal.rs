@@ -8,16 +8,20 @@ use regex::Regex;
 use std::{fs::File, path::PathBuf};
 use zip::ZipArchive;
 
-fn extract_zip(tmp: &PathBuf, zip_path: &PathBuf, matchers: &Vec<Regex>) -> Result<Vec<PathBuf>> {
+fn extract_zip(
+    outdir: &PathBuf,
+    zip_path: &PathBuf,
+    matchers: &Vec<Regex>,
+) -> Result<Vec<PathBuf>> {
     let mut out = vec![];
     let file = File::open(zip_path)?;
     let zip_filename = zip_path.file_name().unwrap().to_str().unwrap();
-    let tmp = tmp.join(zip_filename).with_extension("");
+    let outdir = outdir.join(zip_filename).with_extension("");
     let mut zip = ZipArchive::new(file)?;
     for i in 0..zip.len() {
         let mut file = zip.by_index(i)?;
         let file_name = file.name().to_string();
-        let dest_path = tmp.join(&file_name);
+        let dest_path = outdir.join(&file_name);
         let basedir = dest_path.parent().unwrap();
 
         // println!("Extracting: {}", file_name);
@@ -25,7 +29,7 @@ fn extract_zip(tmp: &PathBuf, zip_path: &PathBuf, matchers: &Vec<Regex>) -> Resu
             std::fs::create_dir_all(&basedir)?;
             std::io::copy(&mut file, &mut File::create(&dest_path)?)?;
             out.extend(
-                extract_zip(&tmp, &dest_path, &matchers)
+                extract_zip(&outdir, &dest_path, &matchers)
                     .with_context(|| format!("when extracting nested {}", dest_path.display()))?,
             );
         } else if matchers.iter().any(|r| r.is_match(&file_name)) {

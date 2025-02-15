@@ -24,20 +24,19 @@ pub struct DownloadQueue {
 }
 
 impl DownloadQueue {
-    pub fn new(tmp: &PathBuf) -> Self {
+    pub fn new() -> Self {
         let (pb_status_sender, pb_status_receiver) = unbounded::<PBStatusUpdateMsg>();
         let (sender, receiver) = unbounded::<DataItem>();
         let mut set = task::JoinSet::new();
         for _i in 0..DL_QUEUE_SIZE {
             let receiver = receiver.clone();
             let pb_sender = pb_status_sender.clone();
-            let tmp = tmp.clone();
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
                     // println!("processor {} loading: {}", i, item.file_url);
                     // println!("Downloading: {}", url);
                     let url = item.file_url;
-                    downloader::download_to_tmp(&tmp, &url).await.unwrap();
+                    downloader::download_to_tmp(&url).await.unwrap();
                     pb_sender
                         .send(PBStatusUpdateMsg {
                             added: 0,

@@ -6,6 +6,8 @@ use tokio::fs::{self, File};
 use tokio::io::AsyncWriteExt;
 use url::Url;
 
+use crate::context;
+
 #[derive(Serialize, Deserialize)]
 struct Metadata {
     last_modified: Option<String>,
@@ -16,7 +18,8 @@ pub struct DownloadedFile {
     pub path: PathBuf,
 }
 
-pub fn path_for_url(tmp: &PathBuf, url: &Url) -> (PathBuf, PathBuf) {
+pub fn path_for_url(url: &Url) -> (PathBuf, PathBuf) {
+    let tmp = context::tmp();
     let filename = url
         .path_segments()
         .and_then(|segments| segments.last())
@@ -27,8 +30,8 @@ pub fn path_for_url(tmp: &PathBuf, url: &Url) -> (PathBuf, PathBuf) {
     )
 }
 
-pub async fn download_to_tmp(tmp: &PathBuf, url: &Url) -> Result<DownloadedFile> {
-    let (file_path, meta_path) = path_for_url(&tmp, &url);
+pub async fn download_to_tmp(url: &Url) -> Result<DownloadedFile> {
+    let (file_path, meta_path) = path_for_url(&url);
 
     // Try to read existing metadata if it exists.
     let metadata: Option<Metadata> = if let Ok(meta_content) = fs::read_to_string(&meta_path).await

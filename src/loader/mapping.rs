@@ -88,9 +88,9 @@ impl ShapefileMetadataBuilder {
     }
 }
 
-async fn download_mapping_definition_file(tmp: &PathBuf) -> Result<downloader::DownloadedFile> {
+async fn download_mapping_definition_file() -> Result<downloader::DownloadedFile> {
     let url = Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/shape_property_table2.xlsx")?;
-    downloader::download_to_tmp(&tmp, &url).await
+    downloader::download_to_tmp(&url).await
 }
 
 fn data_to_string(data: &Data) -> Option<String> {
@@ -100,8 +100,8 @@ fn data_to_string(data: &Data) -> Option<String> {
         .map(|s| s.to_string())
 }
 
-async fn parse_mapping_file(tmp: &PathBuf) -> Result<Vec<ShapefileMetadata>> {
-    let file = download_mapping_definition_file(&tmp).await?;
+async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
+    let file = download_mapping_definition_file().await?;
     let path = file.path;
     let mut workbook: Xlsx<_> = calamine::open_workbook(&path)?;
     let mut out: Vec<ShapefileMetadata> = Vec::new();
@@ -175,17 +175,14 @@ async fn parse_mapping_file(tmp: &PathBuf) -> Result<Vec<ShapefileMetadata>> {
 }
 
 static MAPPING_DEFS: OnceCell<Vec<ShapefileMetadata>> = OnceCell::const_new();
-pub async fn mapping_defs(tmp: &PathBuf) -> Result<&Vec<ShapefileMetadata>> {
+pub async fn mapping_defs() -> Result<&'static Vec<ShapefileMetadata>> {
     MAPPING_DEFS
-        .get_or_try_init(|| async { parse_mapping_file(&tmp).await })
+        .get_or_try_init(|| async { parse_mapping_file().await })
         .await
 }
 
-pub async fn find_mapping_def_for_entry(
-    tmp: &PathBuf,
-    identifier: &str,
-) -> Result<Option<ShapefileMetadata>> {
-    let defs = mapping_defs(&tmp).await?;
+pub async fn find_mapping_def_for_entry(identifier: &str) -> Result<Option<ShapefileMetadata>> {
+    let defs = mapping_defs().await?;
     Ok(defs
         .iter()
         .find(|def| def.identifier == identifier)
@@ -194,12 +191,14 @@ pub async fn find_mapping_def_for_entry(
 
 #[cfg(test)]
 mod tests {
+    use crate::context::set_tmp;
+
     use super::*;
 
     #[tokio::test]
     async fn test_parse_mapping_file() {
-        let tmp = PathBuf::from("./tmp");
-        let result = parse_mapping_file(&tmp).await;
+        set_tmp(PathBuf::from("./tmp"));
+        let result = parse_mapping_file().await;
         assert!(result.is_ok());
         let data = &result.unwrap();
 

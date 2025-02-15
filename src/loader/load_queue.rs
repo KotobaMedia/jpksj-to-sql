@@ -1,3 +1,4 @@
+use crate::context;
 use crate::loader::gdal;
 use crate::loader::{mapping, zip_traversal};
 use crate::scraper::Dataset;
@@ -9,17 +10,15 @@ use std::path::PathBuf;
 use std::time::Duration;
 use tokio::task;
 
-async fn load(
-    tmp: &PathBuf,
-    dataset: &Dataset,
-    postgres_url: &str,
-    skip_if_exists: bool,
-) -> Result<()> {
+use super::Loader;
+
+async fn load(dataset: &Dataset, postgres_url: &str, skip_if_exists: bool) -> Result<()> {
+    let tmp = context::tmp();
     let vrt_tmp = tmp.join("vrt");
     tokio::fs::create_dir_all(&vrt_tmp).await?;
 
     // first, let's get the entry for this dataset from the mapping file
-    let mapping = mapping::find_mapping_def_for_entry(&tmp, &dataset.page.identifier)
+    let mapping = mapping::find_mapping_def_for_entry(&dataset.page.identifier)
         .await?
         .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset: {}", dataset))?;
 
@@ -63,7 +62,13 @@ pub struct LoadQueue {
 }
 
 impl LoadQueue {
-    pub fn new(tmp: &PathBuf, postgres_url: &str, skip_if_exists: bool) -> Self {
+    pub fn new(loader: &Loader) -> Self {
+        let Loader {
+            postgres_url,
+            skip_if_exists,
+            ..
+        } = loader;
+
         let (pb_status_sender, pb_status_receiver) = unbounded::<PBStatusUpdateMsg>();
         let (sender, receiver) = unbounded::<Dataset>();
         let mut set = task::JoinSet::new();
@@ -72,11 +77,11 @@ impl LoadQueue {
             let receiver = receiver.clone();
             let pb_sender = pb_status_sender.clone();
             let postgres_url = postgres_url.to_string();
-            let tmp = tmp.clone();
+            let skip_if_exists = *skip_if_exists;
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
                     // println!("processor {} loading", _i);
-                    let result = load(&tmp, &item, &postgres_url, skip_if_exists).await;
+                    let result = load(&item, &postgres_url, skip_if_exists).await;
                     if let Err(e) = result {
                         eprintln!("Error in loading dataset, skipping... {:?}", e);
                     }
