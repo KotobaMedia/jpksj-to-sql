@@ -1,0 +1,73 @@
+name: Build and Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+    - v*
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        job:
+          - os: ubuntu-latest
+            arch: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            arch: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.job.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.job.arch }}
+      - name: Build
+        run: cargo build --release --target ${{ matrix.job.arch }}
+
+      - name: Create archive
+        run: |
+          # Create a dedicated folder for artifacts
+          mkdir -p target/artifacts
+          # Copy the built binary into the artifacts folder
+          cp target/${{ matrix.job.arch }}/release/jpksj-to-sql target/artifacts/
+          cd target/artifacts
+          # Package the binary into a zip file named uniquely for this target
+          zip jpksj-to-sql-${{ matrix.job.arch }}.zip jpksj-to-sql
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.job.arch }}-release
+          path: target/artifacts/jpksj-to-sql-${{ matrix.job.arch }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact for x86_64-unknown-linux-gnu
+        uses: actions/download-artifact@v4
+        with:
+          name: x86_64-unknown-linux-gnu-release
+          path: artifacts/x86_64
+
+      - name: Download artifact for aarch64-apple-darwin
+        uses: actions/download-artifact@v4
+        with:
+          name: aarch64-apple-darwin-release
+          path: artifacts/aarch64
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # Use the tag name without the refs/ prefix
+          tag_name: ${{ github.ref_name }}
+          files: |
+            artifacts/x86_64/jpksj-to-sql-x86_64-unknown-linux-gnu.zip
+            artifacts/aarch64/jpksj-to-sql-aarch64-apple-darwin.zip
