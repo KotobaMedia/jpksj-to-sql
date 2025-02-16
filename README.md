@@ -15,6 +15,8 @@ GDAL 2.1以上必要です (`ogr2ogr` または `ogrinfo` が実行できる環�
 jpksj-to-sql "host=127.0.0.1 dbname=jpksj"
 ```
 
+macOS の場合: Gatekeeper の設定で GitHub Release でダウンロードしたバイナリを実行できない場合があります。 `xattr -d com.apple.quarantine ./jpksj-to-sql` を実行したら突破できます。
+
 インターネット接続、メモリ、SSD転送速度等によって処理時間が大幅に左右します。途中からの続きを再開するために幾つかのオプションがあるので、 `jpksj-to-sql --help` で確認してください。
 
 ダウンロードした ZIP ファイルや解凍した shapefile をデフォルトで実行ディレクトリ内 `./tmp` に保存されます。
