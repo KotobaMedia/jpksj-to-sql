@@ -114,6 +114,8 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
         items.push(item);
     }
 
+    items = filter_data_items(items);
+
     Ok(DataPage {
         url: url.clone(),
         identifier: identifier.ok_or_else(|| anyhow::anyhow!("No identifier found for {}", url))?,
@@ -151,7 +153,7 @@ fn parse_recency(item: &DataItem) -> Option<u32> {
  * 全国データある場合はそれだけを返す
  * ない場合はそのまま帰す（殆どの場合は都道府県別）
  */
-pub fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
+fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
     // Step 1: Filter items by CRS.
     let crs_filtered: Vec<DataItem> = items
         .into_iter()

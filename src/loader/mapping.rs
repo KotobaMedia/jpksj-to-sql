@@ -32,7 +32,12 @@ pub struct ShapefileMetadata {
     pub identifier: String,
 }
 
-fn create_shapefile_name_regex(template_string: String) -> Result<Regex, String> {
+fn create_shapefile_name_regex(_template_string: String) -> Result<Regex, String> {
+    Regex::new(r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$").map_err(|e| e.to_string())
+}
+
+// TODO: この関数はもう使われていない。excelに記載された名前パターンが間違っていたことがあったので今は適当にshpを全て読み込みます
+fn _create_shapefile_name_regex(template_string: String) -> Result<Regex, String> {
     let remove_re = Regex::new(r"（[^）]+）").unwrap();
     let template = remove_re.replace_all(template_string.as_str(), "");
     let template = template.trim();

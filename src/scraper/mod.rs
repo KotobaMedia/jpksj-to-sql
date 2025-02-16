@@ -53,13 +53,12 @@ impl Scraper {
                 }
             }
 
-            let items = data_page::filter_data_items(page.items.clone());
             let mut zip_file_paths: Vec<PathBuf> = Vec::new();
-            for item in items {
+            for item in &page.items {
                 let expected_path = path_for_url(&item.file_url);
                 zip_file_paths.push(expected_path.0);
                 if !self.skip_dl {
-                    dl_queue.push(item).await?;
+                    dl_queue.push(item.clone()).await?;
                 }
             }
             out.push(Dataset {
