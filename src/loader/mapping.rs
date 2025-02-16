@@ -1,11 +1,8 @@
-use std::vec;
-
-// the module responsible for mapping shapefile field names to database column names.
-// this module also can recognize the metadata of the shapefile
 use anyhow::Result;
 use calamine::{Data, DataType, Reader, Xlsx};
 use derive_builder::Builder;
 use regex::Regex;
+use std::vec;
 use tokio::sync::OnceCell;
 use url::Url;
 
@@ -14,14 +11,17 @@ use crate::downloader;
 #[derive(Builder, Clone, Debug)]
 #[builder(derive(Debug))]
 pub struct ShapefileMetadata {
-    pub cat1: String,      // 4. 交通
-    pub cat2: String,      // 交通
-    pub name: String,      // 鉄道時系列（ライン）
-    pub version: String,   // 2023年度版
+    pub cat1: String, // 4. 交通
+    pub cat2: String, // 交通
+    pub name: String, // 鉄道時系列（ライン）
+    #[allow(dead_code)]
+    pub version: String, // 2023年度版
+    #[allow(dead_code)]
     pub data_year: String, // 令和5年度
 
     /// シェープファイル名
     /// （表記中のYYは年次、MMは月、PPは都道府県コード、CCCCCは市区町村コード、AAは支庁コード、mmmmはメッシュコードを示します。）
+    #[allow(dead_code)]
     #[builder(default = "vec![]")]
     pub shapefile_matcher: Vec<String>,
     // // parsed version of shapefile_matcher; computed from shapefile_matcher

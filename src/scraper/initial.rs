@@ -18,6 +18,7 @@ pub struct DataItem {
 
 #[derive(Debug)]
 pub struct ScrapeResult {
+    #[allow(dead_code)]
     pub url: Url,
     pub data: Vec<DataItem>,
 }
