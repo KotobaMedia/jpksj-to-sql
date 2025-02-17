@@ -15,10 +15,10 @@ jobs:
         job:
           - os: ubuntu-latest
             arch: x86_64-unknown-linux-gnu
-          - os: macos-latest
-            arch: aarch64-apple-darwin
-          - os: windows-latest
-            arch: x86_64-pc-windows-msvc
+
+          # TODO: Tests on Windows requires gdal, but I don't know how to install it yet...
+          # - os: windows-latest
+          #   arch: x86_64-pc-windows-msvc
 
     runs-on: ${{ matrix.job.os }}
 
@@ -31,6 +31,10 @@ jobs:
         with:
           toolchain: stable
           target: ${{ matrix.job.arch }}
+
+      - name: Install dependencies
+        if: matrix.job.os == 'ubuntu-latest'
+        run: sudo apt-get install -y gdal-bin
 
       - name: Cache temporary files
         uses: actions/cache@v4

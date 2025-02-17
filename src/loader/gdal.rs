@@ -154,6 +154,9 @@ async fn detect_encoding_ogrinfo(shape: &PathBuf) -> Result<Option<String>> {
 
     if let Value::String(encoding) = encoding_data {
         let encoding = encoding.to_string();
+        if encoding == "" {
+            return Ok(None);
+        }
         return Ok(Some(encoding));
     }
 
@@ -179,6 +182,10 @@ mod tests {
     #[tokio::test]
     async fn test_detect_encoding() {
         let shape = std::path::PathBuf::from("./test_data/shp/cp932.shp");
+        let encoding = super::detect_encoding(&shape).await.unwrap();
+        assert_eq!(encoding, "CP932");
+
+        let shape = std::path::PathBuf::from("./test_data/shp/src_blank.shp");
         let encoding = super::detect_encoding(&shape).await.unwrap();
         assert_eq!(encoding, "CP932");
     }
