@@ -114,7 +114,8 @@ pub async fn detect_encoding(shape: &PathBuf) -> Result<&str> {
         .await?;
 
     if !ogrinfo.status.success() {
-        anyhow::bail!("ogrinfo failed");
+        let stderr = String::from_utf8_lossy(&ogrinfo.stderr);
+        anyhow::bail!("ogrinfo failed: {}", stderr);
     }
 
     let data = &ogrinfo.stdout;

@@ -17,6 +17,8 @@ jobs:
             arch: x86_64-unknown-linux-gnu
           - os: macos-latest
             arch: aarch64-apple-darwin
+          - os: windows-latest
+            arch: x86_64-pc-windows-msvc
 
     runs-on: ${{ matrix.job.os }}
 
@@ -32,14 +34,20 @@ jobs:
         run: cargo build --release --target ${{ matrix.job.arch }}
 
       - name: Create archive
+        if: matrix.job.os == 'ubuntu-latest' || matrix.job.os == 'macos-latest'
         run: |
-          # Create a dedicated folder for artifacts
           mkdir -p target/artifacts
-          # Copy the built binary into the artifacts folder
           cp target/${{ matrix.job.arch }}/release/jpksj-to-sql target/artifacts/
           cd target/artifacts
-          # Package the binary into a zip file named uniquely for this target
           zip jpksj-to-sql-${{ matrix.job.arch }}.zip jpksj-to-sql
+
+      - name: Create archive (Windows)
+        if: matrix.job.os == 'windows-latest'
+        run: |
+          mkdir -p target/artifacts
+          cp target/${{ matrix.job.arch }}/release/jpksj-to-sql.exe target/artifacts/
+          cd target/artifacts
+          zip jpksj-to-sql-${{ matrix.job.arch }}.zip jpksj-to-sql.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -93,7 +93,11 @@ impl LoadQueue {
                     // println!("processor {} loading", _i);
                     let result = load(&item, &postgres_url, skip_if_exists, &metadata_conn).await;
                     if let Err(e) = result {
-                        eprintln!("Error in loading dataset, skipping... {:?}", e);
+                        let identifier = item.page.identifier.clone();
+                        eprintln!(
+                            "Error in loading dataset {}, skipping... {:?}",
+                            identifier, e
+                        );
                     }
                     pb_sender
                         .send(PBStatusUpdateMsg {
