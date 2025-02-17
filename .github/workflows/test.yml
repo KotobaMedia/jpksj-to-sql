@@ -22,7 +22,6 @@ jobs:
 
     runs-on: ${{ matrix.job.os }}
 
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

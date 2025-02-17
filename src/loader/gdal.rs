@@ -11,16 +11,28 @@ pub async fn create_vrt(
     shapes: &Vec<PathBuf>,
     metadata: &ShapefileMetadata,
 ) -> Result<()> {
+    if shapes.is_empty() {
+        anyhow::bail!("No shapefiles found");
+    }
+
     let bare_vrt = out.with_extension("");
     let layer_name = bare_vrt.file_name().unwrap().to_str().unwrap();
     // let vrt_path = shape.with_extension("vrt");
 
     let mut fields = String::new();
+    let attributes = get_attribute_list(&shapes[0]).await?;
     for (field_name, shape_name) in metadata.field_mappings.iter() {
+        // ignore attributes in the mapping that are not in the shapefile
+        if attributes.iter().find(|&attr| attr == shape_name).is_none() {
+            continue;
+        }
         fields.push_str(&format!(
             r#"<Field name="{}" src="{}" />"#,
             field_name, shape_name
         ));
+    }
+    if fields.is_empty() {
+        anyhow::bail!("No fields found in shapefile");
     }
 
     let mut layers = String::new();
@@ -60,7 +72,8 @@ pub async fn create_vrt(
 }
 
 pub async fn load_to_postgres(vrt: &PathBuf, postgres_url: &str) -> Result<()> {
-    let output = Command::new("ogr2ogr")
+    let mut cmd = Command::new("ogr2ogr");
+    let output = cmd
         .arg("-f")
         .arg("PostgreSQL")
         .arg(format!("PG:{}", postgres_url))
@@ -102,8 +115,45 @@ pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
     Ok(output.status.success())
 }
 
+async fn get_attribute_list(shape: &PathBuf) -> Result<Vec<String>> {
+    let ogrinfo = Command::new("ogrinfo")
+        .arg("-json")
+        .arg(shape)
+        .output()
+        .await?;
+
+    if !ogrinfo.status.success() {
+        let stderr = String::from_utf8_lossy(&ogrinfo.stderr);
+        anyhow::bail!("ogrinfo failed: {}", stderr);
+    }
+
+    let stdout_str = String::from_utf8_lossy(&ogrinfo.stdout);
+    let json: Value =
+        serde_json::from_str(&stdout_str).with_context(|| "when parsing ogrinfo JSON output")?;
+
+    let encoding_path = JsonPath::try_from("$.layers[0].fields[*].name")?;
+    let encoding_val = encoding_path.find_slice(&json);
+    let mut attributes = vec![];
+    for val in encoding_val {
+        if let Value::String(attr) = val.clone().to_data() {
+            attributes.push(attr);
+        }
+    }
+    Ok(attributes)
+}
+
 // PC932 is almost the same as Shift-JIS, but most GIS software outputs as CP932 when using Shift-JIS
 static ENCODINGS: &[(&str, &Encoding)] = &[("CP932", SHIFT_JIS), ("UTF-8", UTF_8)];
+
+// We get the bytes from the ogrinfo output after "successful"
+// this is because before "successful" is the filename, and the filename
+// can contain non-UTF8 characters
+fn bytes_after_successful(data: &Vec<u8>) -> Option<&[u8]> {
+    let needle = b"successful"; // equivalent to "successful".as_bytes()
+    data.windows(needle.len())
+        .position(|window| window == needle)
+        .map(|pos| &data[pos + needle.len()..])
+}
 
 async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
     let ogrinfo = Command::new("ogrinfo")
@@ -120,7 +170,9 @@ async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
         anyhow::bail!("ogrinfo failed: {}", stderr);
     }
 
-    let data = &ogrinfo.stdout;
+    let Some(data) = bytes_after_successful(&ogrinfo.stdout) else {
+        anyhow::bail!("ogrinfo failed to open {}", shape.display());
+    };
     for (name, encoding) in ENCODINGS {
         // decode() returns a tuple: (decoded string, bytes read, had_errors)
         let (_decoded, _, had_errors) = encoding.decode(data);
@@ -188,5 +240,12 @@ mod tests {
         let shape = std::path::PathBuf::from("./test_data/shp/src_blank.shp");
         let encoding = super::detect_encoding(&shape).await.unwrap();
         assert_eq!(encoding, "CP932");
+    }
+
+    #[tokio::test]
+    async fn test_get_attribute_list() {
+        let shape = std::path::PathBuf::from("./test_data/shp/cp932.shp");
+        let attributes = super::get_attribute_list(&shape).await.unwrap();
+        assert_eq!(attributes, vec!["W09_001", "W09_002", "W09_003", "W09_004"]);
     }
 }

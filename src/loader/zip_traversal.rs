@@ -33,6 +33,10 @@ fn extract_zip(
                     .with_context(|| format!("when extracting nested {}", dest_path.display()))?,
             );
         } else if matchers.iter().any(|r| r.is_match(&file_name)) {
+            if file_name.starts_with("N08-21_GML/utf8/") {
+                // skip this file, it's a duplicate and contains malformed UTF8
+                continue;
+            }
             std::fs::create_dir_all(&basedir)?;
             std::io::copy(&mut file, &mut File::create(&dest_path)?)?;
             out.push(dest_path);
@@ -51,11 +55,28 @@ pub async fn matching_shapefiles_in_zip(
     let matchers = mapping.shapefile_name_regex.clone();
     let zip_path = zip_path.clone();
 
-    let all_paths = tokio::task::spawn_blocking(move || {
-        extract_zip(&shp_tmp, &zip_path, &matchers)
-            .with_context(|| format!("when extracting {}", zip_path.display()))
-    })
-    .await??;
+    let mut all_paths = {
+        let shp_tmp = shp_tmp.clone();
+        let zip_path = zip_path.clone();
+        tokio::task::spawn_blocking(move || {
+            extract_zip(&shp_tmp, &zip_path, &matchers)
+                .with_context(|| format!("when extracting {}", zip_path.display()))
+        })
+        .await??
+    };
+
+    if all_paths.is_empty() {
+        // since we didn't get any shapefiles this time, let's expand the matchers to see if we can find any
+        let expanded_matchers = vec![Regex::new(
+            r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
+        )?];
+
+        all_paths = tokio::task::spawn_blocking(move || {
+            extract_zip(&shp_tmp, &zip_path, &expanded_matchers)
+                .with_context(|| format!("when extracting {}", zip_path.display()))
+        })
+        .await??;
+    }
 
     // at this point, we have decompressed all shapefiles (and accompanying files)
     // however, we only need the `.shp` files for passing to ogr2ogr
