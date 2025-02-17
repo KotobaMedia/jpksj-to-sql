@@ -1,7 +1,6 @@
 use super::mapping::ShapefileMetadata;
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use encoding_rs::{Encoding, SHIFT_JIS, UTF_8};
-use jsonpath_rust::JsonPath;
 use serde_json::Value;
 use std::path::PathBuf;
 use tokio::process::Command;
@@ -131,14 +130,21 @@ async fn get_attribute_list(shape: &PathBuf) -> Result<Vec<String>> {
     let json: Value =
         serde_json::from_str(&stdout_str).with_context(|| "when parsing ogrinfo JSON output")?;
 
-    let encoding_path = JsonPath::try_from("$.layers[0].fields[*].name")?;
-    let encoding_val = encoding_path.find_slice(&json);
-    let mut attributes = vec![];
-    for val in encoding_val {
-        if let Value::String(attr) = val.clone().to_data() {
-            attributes.push(attr);
-        }
-    }
+    let fields = json
+        .pointer("/layers/0/fields")
+        .and_then(Value::as_array)
+        .ok_or_else(|| anyhow!("missing fields array"))?;
+
+    let attributes: Vec<String> = fields
+        .iter()
+        .filter_map(|field| {
+            field
+                .pointer("/name")
+                .and_then(Value::as_str)
+                .map(String::from)
+        })
+        .collect();
+
     Ok(attributes)
 }
 
@@ -200,16 +206,15 @@ async fn detect_encoding_ogrinfo(shape: &PathBuf) -> Result<Option<String>> {
     let json: Value =
         serde_json::from_str(&stdout_str).with_context(|| "when parsing ogrinfo JSON output")?;
 
-    let encoding_path = JsonPath::try_from("$.layers[0].metadata.SHAPEFILE.SOURCE_ENCODING")?;
-    let encoding_val = encoding_path.find_slice(&json);
-    let encoding_data = encoding_val[0].clone().to_data();
+    let source_encoding = json
+        .pointer("/layers/0/metadata/SHAPEFILE/SOURCE_ENCODING")
+        .and_then(Value::as_str);
 
-    if let Value::String(encoding) = encoding_data {
-        let encoding = encoding.to_string();
+    if let Some(encoding) = source_encoding {
         if encoding == "" {
             return Ok(None);
         }
-        return Ok(Some(encoding));
+        return Ok(Some(encoding.to_string()));
     }
 
     Ok(None)
