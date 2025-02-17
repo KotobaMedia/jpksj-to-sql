@@ -33,6 +33,10 @@ fn extract_zip(
                     .with_context(|| format!("when extracting nested {}", dest_path.display()))?,
             );
         } else if matchers.iter().any(|r| r.is_match(&file_name)) {
+            if file_name.starts_with("N08-21_GML/utf8/") {
+                // skip this file, it's a duplicate and contains malformed UTF8
+                continue;
+            }
             std::fs::create_dir_all(&basedir)?;
             std::io::copy(&mut file, &mut File::create(&dest_path)?)?;
             out.push(dest_path);

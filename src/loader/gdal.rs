@@ -60,7 +60,8 @@ pub async fn create_vrt(
 }
 
 pub async fn load_to_postgres(vrt: &PathBuf, postgres_url: &str) -> Result<()> {
-    let output = Command::new("ogr2ogr")
+    let mut cmd = Command::new("ogr2ogr");
+    let output = cmd
         .arg("-f")
         .arg("PostgreSQL")
         .arg(format!("PG:{}", postgres_url))
@@ -105,6 +106,16 @@ pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
 // PC932 is almost the same as Shift-JIS, but most GIS software outputs as CP932 when using Shift-JIS
 static ENCODINGS: &[(&str, &Encoding)] = &[("CP932", SHIFT_JIS), ("UTF-8", UTF_8)];
 
+// We get the bytes from the ogrinfo output after "successful"
+// this is because before "successful" is the filename, and the filename
+// can contain non-UTF8 characters
+fn bytes_after_successful(data: &Vec<u8>) -> Option<&[u8]> {
+    let needle = b"successful"; // equivalent to "successful".as_bytes()
+    data.windows(needle.len())
+        .position(|window| window == needle)
+        .map(|pos| &data[pos + needle.len()..])
+}
+
 async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
     let ogrinfo = Command::new("ogrinfo")
         .arg("-al")
@@ -120,7 +131,9 @@ async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
         anyhow::bail!("ogrinfo failed: {}", stderr);
     }
 
-    let data = &ogrinfo.stdout;
+    let Some(data) = bytes_after_successful(&ogrinfo.stdout) else {
+        anyhow::bail!("ogrinfo failed to open {}", shape.display());
+    };
     for (name, encoding) in ENCODINGS {
         // decode() returns a tuple: (decoded string, bytes read, had_errors)
         let (_decoded, _, had_errors) = encoding.decode(data);
