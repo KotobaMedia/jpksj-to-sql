@@ -11,16 +11,28 @@ pub async fn create_vrt(
     shapes: &Vec<PathBuf>,
     metadata: &ShapefileMetadata,
 ) -> Result<()> {
+    if shapes.is_empty() {
+        anyhow::bail!("No shapefiles found");
+    }
+
     let bare_vrt = out.with_extension("");
     let layer_name = bare_vrt.file_name().unwrap().to_str().unwrap();
     // let vrt_path = shape.with_extension("vrt");
 
     let mut fields = String::new();
+    let attributes = get_attribute_list(&shapes[0]).await?;
     for (field_name, shape_name) in metadata.field_mappings.iter() {
+        // ignore attributes in the mapping that are not in the shapefile
+        if attributes.iter().find(|&attr| attr == shape_name).is_none() {
+            continue;
+        }
         fields.push_str(&format!(
             r#"<Field name="{}" src="{}" />"#,
             field_name, shape_name
         ));
+    }
+    if fields.is_empty() {
+        anyhow::bail!("No fields found in shapefile");
     }
 
     let mut layers = String::new();
@@ -101,6 +113,33 @@ pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
         .await?;
 
     Ok(output.status.success())
+}
+
+async fn get_attribute_list(shape: &PathBuf) -> Result<Vec<String>> {
+    let ogrinfo = Command::new("ogrinfo")
+        .arg("-json")
+        .arg(shape)
+        .output()
+        .await?;
+
+    if !ogrinfo.status.success() {
+        let stderr = String::from_utf8_lossy(&ogrinfo.stderr);
+        anyhow::bail!("ogrinfo failed: {}", stderr);
+    }
+
+    let stdout_str = String::from_utf8_lossy(&ogrinfo.stdout);
+    let json: Value =
+        serde_json::from_str(&stdout_str).with_context(|| "when parsing ogrinfo JSON output")?;
+
+    let encoding_path = JsonPath::try_from("$.layers[0].fields[*].name")?;
+    let encoding_val = encoding_path.find_slice(&json);
+    let mut attributes = vec![];
+    for val in encoding_val {
+        if let Value::String(attr) = val.clone().to_data() {
+            attributes.push(attr);
+        }
+    }
+    Ok(attributes)
 }
 
 // PC932 is almost the same as Shift-JIS, but most GIS software outputs as CP932 when using Shift-JIS
@@ -201,5 +240,12 @@ mod tests {
         let shape = std::path::PathBuf::from("./test_data/shp/src_blank.shp");
         let encoding = super::detect_encoding(&shape).await.unwrap();
         assert_eq!(encoding, "CP932");
+    }
+
+    #[tokio::test]
+    async fn test_get_attribute_list() {
+        let shape = std::path::PathBuf::from("./test_data/shp/cp932.shp");
+        let attributes = super::get_attribute_list(&shape).await.unwrap();
+        assert_eq!(attributes, vec!["W09_001", "W09_002", "W09_003", "W09_004"]);
     }
 }

@@ -55,11 +55,28 @@ pub async fn matching_shapefiles_in_zip(
     let matchers = mapping.shapefile_name_regex.clone();
     let zip_path = zip_path.clone();
 
-    let all_paths = tokio::task::spawn_blocking(move || {
-        extract_zip(&shp_tmp, &zip_path, &matchers)
-            .with_context(|| format!("when extracting {}", zip_path.display()))
-    })
-    .await??;
+    let mut all_paths = {
+        let shp_tmp = shp_tmp.clone();
+        let zip_path = zip_path.clone();
+        tokio::task::spawn_blocking(move || {
+            extract_zip(&shp_tmp, &zip_path, &matchers)
+                .with_context(|| format!("when extracting {}", zip_path.display()))
+        })
+        .await??
+    };
+
+    if all_paths.is_empty() {
+        // since we didn't get any shapefiles this time, let's expand the matchers to see if we can find any
+        let expanded_matchers = vec![Regex::new(
+            r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
+        )?];
+
+        all_paths = tokio::task::spawn_blocking(move || {
+            extract_zip(&shp_tmp, &zip_path, &expanded_matchers)
+                .with_context(|| format!("when extracting {}", zip_path.display()))
+        })
+        .await??;
+    }
 
     // at this point, we have decompressed all shapefiles (and accompanying files)
     // however, we only need the `.shp` files for passing to ogr2ogr
