@@ -34,7 +34,9 @@ jobs:
 
       - name: Install dependencies
         if: matrix.job.os == 'ubuntu-latest'
-        run: sudo apt-get install -y gdal-bin
+        run: |
+          sudo apt-get install -y gdal-bin
+          ogrinfo --version
 
       - name: Cache temporary files
         uses: actions/cache@v4
