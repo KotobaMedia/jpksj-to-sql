@@ -9,7 +9,7 @@
 
 ## 利用方法
 
-GDAL 2.1以上必要です (`ogr2ogr` または `ogrinfo` が実行できる環境)
+GDAL 3.9以上必要です (`ogr2ogr` または `ogrinfo` が実行できる環境。 `ogrinfo` は `-limit` 引数使うので、 3.9 が必要です)
 
 ```
 jpksj-to-sql "host=127.0.0.1 dbname=jpksj"

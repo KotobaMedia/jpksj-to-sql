@@ -1,6 +1,8 @@
 use super::mapping::ShapefileMetadata;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use encoding_rs::{Encoding, SHIFT_JIS, UTF_8};
+use jsonpath_rust::JsonPath;
+use serde_json::Value;
 use std::path::PathBuf;
 use tokio::process::Command;
 
@@ -103,7 +105,7 @@ pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
 // PC932 is almost the same as Shift-JIS, but most GIS software outputs as CP932 when using Shift-JIS
 static ENCODINGS: &[(&str, &Encoding)] = &[("CP932", SHIFT_JIS), ("UTF-8", UTF_8)];
 
-pub async fn detect_encoding(shape: &PathBuf) -> Result<&str> {
+async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
     let ogrinfo = Command::new("ogrinfo")
         .arg("-al")
         .arg("-geom=NO")
@@ -114,7 +116,8 @@ pub async fn detect_encoding(shape: &PathBuf) -> Result<&str> {
         .await?;
 
     if !ogrinfo.status.success() {
-        anyhow::bail!("ogrinfo failed");
+        let stderr = String::from_utf8_lossy(&ogrinfo.stderr);
+        anyhow::bail!("ogrinfo failed: {}", stderr);
     }
 
     let data = &ogrinfo.stdout;
@@ -122,9 +125,68 @@ pub async fn detect_encoding(shape: &PathBuf) -> Result<&str> {
         // decode() returns a tuple: (decoded string, bytes read, had_errors)
         let (_decoded, _, had_errors) = encoding.decode(data);
         if !had_errors {
-            return Ok(name);
+            return Ok(Some(name.to_string()));
         }
     }
 
-    anyhow::bail!("Could not detect encoding for {}", shape.display());
+    Ok(None)
+}
+
+async fn detect_encoding_ogrinfo(shape: &PathBuf) -> Result<Option<String>> {
+    let ogrinfo = Command::new("ogrinfo")
+        .arg("-json")
+        .arg(shape)
+        .output()
+        .await?;
+
+    if !ogrinfo.status.success() {
+        let stderr = String::from_utf8_lossy(&ogrinfo.stderr);
+        anyhow::bail!("ogrinfo failed: {}", stderr);
+    }
+
+    let stdout_str = String::from_utf8_lossy(&ogrinfo.stdout);
+    let json: Value =
+        serde_json::from_str(&stdout_str).with_context(|| "when parsing ogrinfo JSON output")?;
+
+    let encoding_path = JsonPath::try_from("$.layers[0].metadata.SHAPEFILE.SOURCE_ENCODING")?;
+    let encoding_val = encoding_path.find_slice(&json);
+    let encoding_data = encoding_val[0].clone().to_data();
+
+    if let Value::String(encoding) = encoding_data {
+        let encoding = encoding.to_string();
+        if encoding == "" {
+            return Ok(None);
+        }
+        return Ok(Some(encoding));
+    }
+
+    Ok(None)
+}
+
+pub async fn detect_encoding(shape: &PathBuf) -> Result<String> {
+    let encoding = detect_encoding_ogrinfo(shape).await?;
+    if let Some(encoding) = encoding {
+        return Ok(encoding);
+    }
+
+    if let Some(encoding) = detect_encoding_fallback(shape).await? {
+        return Ok(encoding);
+    }
+
+    anyhow::bail!("Failed to detect encoding for {}", shape.display());
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[tokio::test]
+    async fn test_detect_encoding() {
+        let shape = std::path::PathBuf::from("./test_data/shp/cp932.shp");
+        let encoding = super::detect_encoding(&shape).await.unwrap();
+        assert_eq!(encoding, "CP932");
+
+        let shape = std::path::PathBuf::from("./test_data/shp/src_blank.shp");
+        let encoding = super::detect_encoding(&shape).await.unwrap();
+        assert_eq!(encoding, "CP932");
+    }
 }
