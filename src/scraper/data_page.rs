@@ -234,13 +234,10 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
         } else {
             let mut tmp: (usize, usize, usize) = (0, 0, 0);
             for (i, cell) in row.iter().enumerate() {
-                let cell_str = cell
-                    .as_ref()
-                    .unwrap()
-                    .text()
-                    .collect::<String>()
-                    .trim()
-                    .to_string();
+                let Some(cell) = cell.as_ref() else {
+                    continue;
+                };
+                let cell_str = cell.text().collect::<String>().trim().to_string();
                 if cell_str.contains("属性名") {
                     tmp.0 = i;
                 } else if cell_str.contains("説明") {
