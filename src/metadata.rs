@@ -32,7 +32,7 @@ impl MetadataConnection {
     }
 
     pub async fn create_dataset(&self, dataset: &Dataset) -> Result<()> {
-        let lowercase_identifier = &dataset.page.identifier.to_lowercase();
+        let lowercase_identifier = &dataset.initial_item.identifier.to_lowercase();
         let metadata = DatasetMetadata {
             data_item: &dataset.initial_item,
             data_page: &dataset.page,

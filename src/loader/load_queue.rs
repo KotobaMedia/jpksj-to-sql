@@ -24,7 +24,7 @@ async fn load(
     tokio::fs::create_dir_all(&vrt_tmp).await?;
 
     // first, let's get the entry for this dataset from the mapping file
-    let mapping = mapping::find_mapping_def_for_entry(&dataset.page.identifier)
+    let mapping = mapping::find_mapping_def_for_entry(&dataset.initial_item.identifier)
         .await?
         .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset: {}", dataset))?;
 
@@ -47,7 +47,7 @@ async fn load(
     }
 
     let vrt_path = vrt_tmp
-        .join(dataset.page.identifier.clone())
+        .join(dataset.initial_item.identifier.clone())
         .with_extension("vrt");
     gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
     gdal::load_to_postgres(&vrt_path, postgres_url).await?;
@@ -93,7 +93,7 @@ impl LoadQueue {
                     // println!("processor {} loading", _i);
                     let result = load(&item, &postgres_url, skip_if_exists, &metadata_conn).await;
                     if let Err(e) = result {
-                        let identifier = item.page.identifier.clone();
+                        let identifier = item.initial_item.identifier.clone();
                         eprintln!(
                             "Error in loading dataset {}, skipping... {:?}",
                             identifier, e

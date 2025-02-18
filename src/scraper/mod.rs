@@ -8,6 +8,7 @@ use crate::downloader::path_for_url;
 pub mod data_page;
 mod download_queue;
 pub mod initial;
+mod table_read;
 
 #[derive(Clone)]
 pub struct Dataset {
@@ -22,7 +23,7 @@ impl fmt::Display for Dataset {
         write!(
             f,
             "Dataset identifier={} url={}",
-            self.page.identifier,
+            self.initial_item.identifier,
             self.page.url.to_string()
         )
     }
@@ -45,13 +46,13 @@ impl Scraper {
             if initial_item.usage == "非商用" {
                 continue;
             }
-
-            let page = Arc::new(data_page::scrape(&initial_item.url).await?);
             if let Some(filter_identifiers) = &self.filter_identifiers {
-                if !filter_identifiers.contains(&page.identifier) {
+                if !filter_identifiers.contains(&initial_item.identifier) {
                     continue;
                 }
             }
+
+            let page = Arc::new(data_page::scrape(&initial_item.url).await?);
 
             let mut zip_file_paths: Vec<PathBuf> = Vec::new();
             for item in &page.items {

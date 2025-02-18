@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use regex::Regex;
 use serde::Serialize;
 use url::Url;
@@ -14,6 +14,7 @@ pub struct DataItem {
     pub usage: String,
 
     pub url: Url,
+    pub identifier: String,
 }
 
 #[derive(Debug)]
@@ -21,6 +22,15 @@ pub struct ScrapeResult {
     #[allow(dead_code)]
     pub url: Url,
     pub data: Vec<DataItem>,
+}
+
+fn extract_identifier_from_metadata_url(url: &str) -> Result<String> {
+    let re = Regex::new(r"/meta/([a-zA-Z0-9-]+)/")?;
+    let captures = re
+        .captures(url)
+        .ok_or_else(|| anyhow!("Couldn't extract identifier from {}", url))?;
+    let identifier = captures.get(1).unwrap().as_str().to_string();
+    Ok(identifier)
 }
 
 pub async fn scrape() -> Result<ScrapeResult> {
@@ -66,8 +76,10 @@ pub async fn scrape() -> Result<ScrapeResult> {
 
             let data_source = tds[2].text().collect::<String>().trim().to_string();
             let data_accuracy = tds[3].text().collect::<String>().trim().to_string();
+            let identifier: String;
             let metadata_xml_url: Url;
             if let Some(url) = tds[4].select(&a_sel).next().and_then(|a| a.attr("href")) {
+                identifier = extract_identifier_from_metadata_url(&url)?;
                 metadata_xml_url = root_url.join(url)?;
             } else {
                 continue;
@@ -90,6 +102,7 @@ pub async fn scrape() -> Result<ScrapeResult> {
                 metadata_xml: metadata_xml_url,
                 usage,
                 url,
+                identifier,
             });
         }
     }
@@ -110,5 +123,6 @@ mod tests {
         assert_eq!(result.data.len(), 125);
         let first = result.data.get(0).unwrap();
         assert_eq!(first.name, "海岸線");
+        assert_eq!(first.identifier, "C23");
     }
 }
