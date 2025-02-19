@@ -181,7 +181,10 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
 
     // 属性名、説明、属性型
     let mut attr_indices: Option<(usize, usize, usize)> = None;
-    let attr_key_regex = Regex::new(r"^(.*?)\s*[（(]([a-zA-Z0-9-_]+)[）)]$").unwrap();
+
+    // ※シェープファイルの属性名の後ろに「▲」を付与している項目は、属性値無しのときは、空欄でなく半角アンダーライン（ _ ）を記述している。
+    // TODO: この処理をハンドリングする?
+    let attr_key_regex = Regex::new(r"^(.*?)\s*[（(]([a-zA-Z0-9-_]+)▲?[）)]$").unwrap();
     for row in other_parsed.outer_iter() {
         if row.len() < 4 {
             continue;
