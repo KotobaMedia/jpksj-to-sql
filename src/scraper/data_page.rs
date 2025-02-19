@@ -132,6 +132,9 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
     let table_sel = Selector::parse("table").unwrap();
     let th_td_sel = Selector::parse("th, td").unwrap();
     let tables: Vec<scraper::ElementRef<'a>> = html.select(&table_sel).collect();
+
+    let strip_tab_re = Regex::new(r"\t+").unwrap();
+
     // 「更新履歴」や「内容」が入っているtableを探す
     let fundamental_table = tables
         .iter()
@@ -154,7 +157,8 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
             continue;
         }
         let key = row[0].as_ref().unwrap().trim().to_string();
-        let value = row[1].as_ref().unwrap().trim().to_string();
+        let mut value = row[1].as_ref().unwrap().trim().to_string();
+        value = strip_tab_re.replace_all(&value, "").to_string();
         metadata.fundamental.insert(key, value);
     }
 
