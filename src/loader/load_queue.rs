@@ -28,10 +28,10 @@ async fn load(
         .await?
         .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset: {}", dataset))?;
 
-    println!(
-        "Loading dataset: {} - {} - {} as {}",
-        mapping.cat1, mapping.cat2, mapping.name, mapping.identifier
-    );
+    // println!(
+    //     "Loading dataset: {} - {} - {} as {}",
+    //     mapping.cat1, mapping.cat2, mapping.name, mapping.identifier
+    // );
 
     let mut shapefiles: Vec<PathBuf> = Vec::new();
     for zip_file_path in &dataset.zip_file_paths {
@@ -59,6 +59,7 @@ async fn load(
 struct PBStatusUpdateMsg {
     added: u64,
     finished: u64,
+    finished_msg: Option<String>,
 }
 
 pub struct LoadQueue {
@@ -103,6 +104,7 @@ impl LoadQueue {
                         .send(PBStatusUpdateMsg {
                             added: 0,
                             finished: 1,
+                            finished_msg: Some(item.initial_item.identifier.clone()),
                         })
                         .await
                         .unwrap();
@@ -114,7 +116,7 @@ impl LoadQueue {
             let pb = ProgressBar::new(0);
             pb.set_style(
                 ProgressStyle::with_template(
-                    "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len}",
+                    "{spinner:.green} [{msg}] [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len}",
                 )
                 .unwrap()
                 .progress_chars("=>-"),
@@ -127,6 +129,9 @@ impl LoadQueue {
                 position += msg.finished;
                 pb.set_length(length);
                 pb.set_position(position);
+                if let Some(msg) = msg.finished_msg {
+                    pb.set_message(msg);
+                }
             }
             pb.finish_with_message("ダウンロードが終了しました。");
         });
@@ -149,6 +154,7 @@ impl LoadQueue {
             .send(PBStatusUpdateMsg {
                 added: 1,
                 finished: 0,
+                finished_msg: None,
             })
             .await?;
         sender.send(item.clone()).await?;
