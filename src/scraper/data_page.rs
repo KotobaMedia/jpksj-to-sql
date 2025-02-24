@@ -130,7 +130,7 @@ pub struct DataPageMetadata {
 fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<DataPageMetadata> {
     let mut metadata = DataPageMetadata::default();
     let table_sel = Selector::parse("table").unwrap();
-    let th_td_sel = Selector::parse("th, td").unwrap();
+    let t_cell_sel = Selector::parse("th, td").unwrap();
     let tables: Vec<scraper::ElementRef<'a>> = html.select(&table_sel).collect();
 
     let strip_tab_re = Regex::new(r"\t+").unwrap();
@@ -140,7 +140,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
         .iter()
         .find(|table| {
             let headers: Vec<String> = table
-                .select(&th_td_sel)
+                .select(&t_cell_sel)
                 .map(|th| th.text().collect::<String>().trim().to_string())
                 .collect();
             headers
@@ -167,17 +167,15 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
         .iter()
         .find(|table| {
             let headers: Vec<String> = table
-                .select(&th_td_sel)
-                .map(|th| th.text().collect::<String>().trim().to_string())
+                .select(&t_cell_sel)
+                .map(|t_cell| t_cell.text().collect::<String>().trim().to_string())
                 .collect();
-            headers
-                .iter()
-                .any(|h| h.contains("属性情報") || h.contains("属性名"))
+            headers.iter().any(|h| h.contains("かっこ内はshp属性名"))
         })
         .ok_or_else(|| anyhow!("属性情報の table が見つかりませんでした"))?
         .clone();
     let other_parsed = parse_table(other_table);
-    // println!("{:?}", attribute_parsed);
+    // println!("{:?}", other_parsed);
 
     // 属性名、説明、属性型
     let mut attr_indices: Option<(usize, usize, usize)> = None;
@@ -186,6 +184,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
     // TODO: この処理をハンドリングする?
     let attr_key_regex = Regex::new(r"^(.*?)\s*[（(]([a-zA-Z0-9-_]+)▲?[）)]$").unwrap();
     for row in other_parsed.outer_iter() {
+        // println!("Looking at row: {:?}", row);
         if row.len() < 4 {
             continue;
         }
@@ -257,6 +256,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
                 }
             }
             attr_indices = Some(tmp);
+            // println!("Found cell indices: {:?}", attr_indices);
         }
     }
 
