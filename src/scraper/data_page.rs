@@ -133,7 +133,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
     let t_cell_sel = Selector::parse("th, td").unwrap();
     let tables: Vec<scraper::ElementRef<'a>> = html.select(&table_sel).collect();
 
-    let strip_tab_re = Regex::new(r"\t+").unwrap();
+    let strip_space_re = Regex::new(r"\s+").unwrap();
 
     // 「更新履歴」や「内容」が入っているtableを探す
     let fundamental_table = tables
@@ -158,7 +158,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
         }
         let key = row[0].as_ref().unwrap().trim().to_string();
         let mut value = row[1].as_ref().unwrap().trim().to_string();
-        value = strip_tab_re.replace_all(&value, "").to_string();
+        value = strip_space_re.replace_all(&value, " ").to_string();
         metadata.fundamental.insert(key, value);
     }
 
@@ -214,15 +214,17 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
             let name_jp = name_match.get(1).unwrap();
             let name_id = name_match.get(2).unwrap();
 
-            let description = row[desc_idx]
+            let mut description = row[desc_idx]
                 .as_ref()
                 .unwrap()
                 .text()
                 .collect::<String>()
                 .trim()
                 .to_string();
+            description = strip_space_re.replace_all(&description, " ").to_string();
             let attr_type_ele = row[type_idx].as_ref().unwrap();
-            let attr_type_str = attr_type_ele.text().collect::<String>().trim().to_string();
+            let mut attr_type_str = attr_type_ele.text().collect::<String>().trim().to_string();
+            attr_type_str = strip_space_re.replace_all(&attr_type_str, " ").to_string();
 
             let mut ref_url = None;
             if let Some(a) = attr_type_ele.select(&Selector::parse("a").unwrap()).next() {
