@@ -170,7 +170,9 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
                 .select(&t_cell_sel)
                 .map(|t_cell| t_cell.text().collect::<String>().trim().to_string())
                 .collect();
-            headers.iter().any(|h| h.contains("かっこ内はshp属性名"))
+            headers
+                .iter()
+                .any(|h| h.contains("かっこ内はshp属性名") || h.contains("括弧内はshpの属性名"))
         })
         .ok_or_else(|| anyhow!("属性情報の table が見つかりませんでした"))?
         .clone();
