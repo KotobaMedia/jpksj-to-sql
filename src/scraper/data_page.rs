@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bytesize::ByteSize;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -36,7 +36,8 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
     let body = response.text().await?;
     let document = Html::parse_document(&body);
 
-    let metadata = extract_metadata(&document, &url)?;
+    let metadata = extract_metadata(&document, &url)
+        .with_context(|| format!("when accessing {}", url.to_string()))?;
 
     let td_sel = Selector::parse("td").unwrap();
     let data_tr_sel = Selector::parse("table.dataTables tr, table.dataTables-mesh tr").unwrap();
@@ -162,107 +163,100 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
         metadata.fundamental.insert(key, value);
     }
 
-    // 「属性情報」や「属性名」が入っているtableを探す
-    let other_table = tables
-        .iter()
-        .find(|table| {
-            let headers: Vec<String> = table
-                .select(&t_cell_sel)
-                .map(|t_cell| t_cell.text().collect::<String>().trim().to_string())
-                .collect();
-            headers
-                .iter()
-                .any(|h| h.contains("かっこ内はshp属性名") || h.contains("括弧内はshpの属性名"))
-        })
-        .ok_or_else(|| anyhow!("属性情報の table が見つかりませんでした"))?
-        .clone();
-    let other_parsed = parse_table(other_table);
-    // println!("{:?}", other_parsed);
-
-    // 属性名、説明、属性型
-    let mut attr_indices: Option<(usize, usize, usize)> = None;
+    if metadata.fundamental.is_empty() {
+        return Err(anyhow!("基本情報が見つかりませんでした"));
+    }
 
     // ※シェープファイルの属性名の後ろに「▲」を付与している項目は、属性値無しのときは、空欄でなく半角アンダーライン（ _ ）を記述している。
     // TODO: この処理をハンドリングする?
     let attr_key_regex = Regex::new(r"^(.*?)\s*[（(]([a-zA-Z0-9-_]+)▲?[）)]$").unwrap();
-    for row in other_parsed.outer_iter() {
-        // println!("Looking at row: {:?}", row);
-        if row.len() < 4 {
-            continue;
-        }
-        let name = row[0]
-            .as_ref()
-            .unwrap()
-            .text()
-            .collect::<String>()
-            .trim()
-            .to_string();
-        if name != "属性情報" {
-            continue;
-        }
-        if let Some((attr_name_idx, desc_idx, type_idx)) = attr_indices {
-            let attr_name_str = row[attr_name_idx]
-                .as_ref()
-                .unwrap()
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_string();
-            let Some(name_match) = attr_key_regex.captures(&attr_name_str) else {
-                continue;
-            };
-            let name_jp = name_match.get(1).unwrap();
-            let name_id = name_match.get(2).unwrap();
 
-            let mut description = row[desc_idx]
-                .as_ref()
-                .unwrap()
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_string();
-            description = strip_space_re.replace_all(&description, " ").to_string();
-            let attr_type_ele = row[type_idx].as_ref().unwrap();
-            let mut attr_type_str = attr_type_ele.text().collect::<String>().trim().to_string();
-            attr_type_str = strip_space_re.replace_all(&attr_type_str, " ").to_string();
+    // 「属性情報」や「属性名」が入っているtableを探す
+    metadata.attribute = tables
+        .iter()
+        .find_map(|table| {
+            let parsed = parse_table(table.clone());
+            // 属性名、説明、属性型
+            let mut attr_indices: Option<(usize, usize, usize)> = None;
 
-            let mut ref_url = None;
-            if let Some(a) = attr_type_ele.select(&Selector::parse("a").unwrap()).next() {
-                let href = a.value().attr("href").unwrap();
-                ref_url = Some(base_url.join(href)?);
-            }
+            let mut attr_map: HashMap<String, AttributeMetadata> = HashMap::new();
 
-            metadata.attribute.insert(
-                name_id.as_str().to_string(),
-                AttributeMetadata {
-                    name: name_jp.as_str().to_string(),
-                    description,
-                    attr_type: attr_type_str,
-                    ref_url,
-                },
-            );
-        } else {
-            let mut tmp: (usize, usize, usize) = (0, 0, 0);
-            for (i, cell) in row.iter().enumerate() {
-                let Some(cell) = cell.as_ref() else {
+            for row in parsed.outer_iter() {
+                if row.len() < 3 {
                     continue;
-                };
-                let cell_str = cell.text().collect::<String>().trim().to_string();
-                if cell_str.contains("属性名") {
-                    tmp.0 = i;
-                } else if cell_str.contains("説明") {
-                    tmp.1 = i;
-                } else if cell_str.contains("属性の型") || cell_str.contains("属性型") {
-                    tmp.2 = i;
                 }
-                if (tmp.0 != 0) && (tmp.1 != 0) && (tmp.2 != 0) {
-                    break;
+                if let Some((attr_name_idx, desc_idx, type_idx)) = attr_indices {
+                    let attr_name_str = row[attr_name_idx]
+                        .as_ref()
+                        .unwrap()
+                        .text()
+                        .collect::<String>()
+                        .trim()
+                        .to_string();
+                    let Some(name_match) = attr_key_regex.captures(&attr_name_str) else {
+                        continue;
+                    };
+                    let name_jp = name_match.get(1).unwrap();
+                    let name_id = name_match.get(2).unwrap();
+
+                    let mut description = row[desc_idx]
+                        .as_ref()
+                        .unwrap()
+                        .text()
+                        .collect::<String>()
+                        .trim()
+                        .to_string();
+                    description = strip_space_re.replace_all(&description, " ").to_string();
+                    let attr_type_ele = row[type_idx].as_ref().unwrap();
+                    let mut attr_type_str =
+                        attr_type_ele.text().collect::<String>().trim().to_string();
+                    attr_type_str = strip_space_re.replace_all(&attr_type_str, " ").to_string();
+
+                    let mut ref_url = None;
+                    if let Some(a) = attr_type_ele.select(&Selector::parse("a").unwrap()).next() {
+                        let href = a.value().attr("href").unwrap();
+                        ref_url = Some(base_url.join(href).unwrap());
+                    }
+
+                    attr_map.insert(
+                        name_id.as_str().to_string(),
+                        AttributeMetadata {
+                            name: name_jp.as_str().to_string(),
+                            description,
+                            attr_type: attr_type_str,
+                            ref_url,
+                        },
+                    );
+                } else {
+                    let mut tmp: (usize, usize, usize) = (0, 0, 0);
+                    for (i, cell) in row.iter().enumerate() {
+                        let Some(cell) = cell.as_ref() else {
+                            continue;
+                        };
+                        let cell_str = cell.text().collect::<String>().trim().to_string();
+                        if cell_str.contains("属性名") {
+                            tmp.0 = i;
+                        } else if cell_str.contains("説明") {
+                            tmp.1 = i;
+                        } else if cell_str.contains("属性の型") || cell_str.contains("属性型")
+                        {
+                            tmp.2 = i;
+                        }
+                        if (tmp.0 != 0) && (tmp.1 != 0) && (tmp.2 != 0) {
+                            attr_indices = Some(tmp);
+                            // println!("Found cell indices: {:?}", attr_indices);
+                            break;
+                        }
+                    }
                 }
             }
-            attr_indices = Some(tmp);
-            // println!("Found cell indices: {:?}", attr_indices);
-        }
-    }
+
+            if attr_map.is_empty() {
+                return None;
+            }
+            Some(attr_map)
+        })
+        .ok_or_else(|| anyhow!("属性情報の table が見つかりませんでした"))?;
 
     Ok(metadata)
 }
@@ -370,5 +364,25 @@ mod tests {
             .ref_url
             .as_ref()
             .is_some_and(|u| u.as_str().contains("AdminiBoundary_CD.xlsx")));
+    }
+
+    #[tokio::test]
+    async fn test_scrape_a27() {
+        let url =
+            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A27-2023.html").unwrap();
+        let page = scrape(&url).await.unwrap();
+        // 全国パターン
+        assert_eq!(page.items.len(), 1);
+
+        let a27_001 = page.metadata.attribute.get("A27_001").unwrap();
+        assert_eq!(a27_001.name, "行政区域コード");
+        let a27_002 = page.metadata.attribute.get("A27_002").unwrap();
+        assert_eq!(a27_002.name, "設置主体");
+        let a27_003 = page.metadata.attribute.get("A27_003").unwrap();
+        assert_eq!(a27_003.name, "学校コード");
+        let a27_004 = page.metadata.attribute.get("A27_004").unwrap();
+        assert_eq!(a27_004.name, "名称");
+        let a27_005 = page.metadata.attribute.get("A27_005").unwrap();
+        assert_eq!(a27_005.name, "所在地");
     }
 }

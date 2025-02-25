@@ -59,7 +59,7 @@ async fn load(
 struct PBStatusUpdateMsg {
     added: u64,
     finished: u64,
-    finished_msg: Option<String>,
+    msg: Option<String>,
 }
 
 pub struct LoadQueue {
@@ -92,6 +92,14 @@ impl LoadQueue {
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
                     // println!("processor {} loading", _i);
+                    pb_sender
+                        .send(PBStatusUpdateMsg {
+                            added: 0,
+                            finished: 0,
+                            msg: Some(item.initial_item.identifier.clone()),
+                        })
+                        .await
+                        .unwrap();
                     let result = load(&item, &postgres_url, skip_if_exists, &metadata_conn).await;
                     if let Err(e) = result {
                         let identifier = item.initial_item.identifier.clone();
@@ -104,7 +112,7 @@ impl LoadQueue {
                         .send(PBStatusUpdateMsg {
                             added: 0,
                             finished: 1,
-                            finished_msg: Some(item.initial_item.identifier.clone()),
+                            msg: Some(item.initial_item.identifier.clone()),
                         })
                         .await
                         .unwrap();
@@ -129,11 +137,12 @@ impl LoadQueue {
                 position += msg.finished;
                 pb.set_length(length);
                 pb.set_position(position);
-                if let Some(msg) = msg.finished_msg {
+                if let Some(msg) = msg.msg {
                     pb.set_message(msg);
                 }
             }
-            pb.finish_with_message("ダウンロードが終了しました。");
+            pb.finish();
+            println!("DB取り組みが終了しました。");
         });
 
         Ok(Self {
@@ -154,7 +163,7 @@ impl LoadQueue {
             .send(PBStatusUpdateMsg {
                 added: 1,
                 finished: 0,
-                finished_msg: None,
+                msg: None,
             })
             .await?;
         sender.send(item.clone()).await?;

@@ -62,7 +62,8 @@ impl DownloadQueue {
                 pb.set_length(length);
                 pb.set_position(position);
             }
-            pb.finish_with_message("ダウンロードが終了しました。");
+            pb.finish();
+            println!("ダウンロードが終了しました。");
         });
         Self {
             pb_status_sender: Some(pb_status_sender),
