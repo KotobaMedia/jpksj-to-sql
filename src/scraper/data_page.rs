@@ -175,6 +175,11 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
     metadata.attribute = tables
         .iter()
         .find_map(|table| {
+            // ignore this table if it has any tables inside of it
+            if table.select(&table_sel).count() > 1 {
+                return None;
+            }
+
             let parsed = parse_table(table.clone());
             // 属性名、説明、属性型
             let mut attr_indices: Option<(usize, usize, usize)> = None;
@@ -185,7 +190,9 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
                 if row.len() < 3 {
                     continue;
                 }
+                // we've already recognized the indices for the attribute table
                 if let Some((attr_name_idx, desc_idx, type_idx)) = attr_indices {
+                    // println!("Looking at row: {:?}", row);
                     let attr_name_str = row[attr_name_idx]
                         .as_ref()
                         .unwrap()
@@ -228,22 +235,25 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
                         },
                     );
                 } else {
-                    let mut tmp: (usize, usize, usize) = (0, 0, 0);
+                    let mut attr_name: Option<usize> = None;
+                    let mut attr_desc: Option<usize> = None;
+                    let mut attr_type: Option<usize> = None;
                     for (i, cell) in row.iter().enumerate() {
                         let Some(cell) = cell.as_ref() else {
                             continue;
                         };
                         let cell_str = cell.text().collect::<String>().trim().to_string();
                         if cell_str.contains("属性名") {
-                            tmp.0 = i;
+                            attr_name = Some(i);
                         } else if cell_str.contains("説明") {
-                            tmp.1 = i;
+                            attr_desc = Some(i);
                         } else if cell_str.contains("属性の型") || cell_str.contains("属性型")
                         {
-                            tmp.2 = i;
+                            attr_type = Some(i);
                         }
-                        if (tmp.0 != 0) && (tmp.1 != 0) && (tmp.2 != 0) {
-                            attr_indices = Some(tmp);
+                        if attr_name.is_some() && attr_desc.is_some() && attr_type.is_some() {
+                            attr_indices =
+                                Some((attr_name.unwrap(), attr_desc.unwrap(), attr_type.unwrap()));
                             // println!("Found cell indices: {:?}", attr_indices);
                             break;
                         }
