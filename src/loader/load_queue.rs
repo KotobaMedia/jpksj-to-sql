@@ -82,7 +82,7 @@ impl LoadQueue {
         let (pb_status_sender, pb_status_receiver) = unbounded::<PBStatusUpdateMsg>();
         let (sender, receiver) = unbounded::<Dataset>();
         let mut set = task::JoinSet::new();
-        let size = max(num_cpus::get_physical() / 2, 1);
+        let size = max(num_cpus::get() - 1, 1);
         for _i in 0..size {
             let receiver = receiver.clone();
             let pb_sender = pb_status_sender.clone();
