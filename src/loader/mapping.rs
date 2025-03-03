@@ -11,8 +11,11 @@ use crate::downloader;
 #[derive(Builder, Clone, Debug)]
 #[builder(derive(Debug))]
 pub struct ShapefileMetadata {
+    #[allow(dead_code)]
     pub cat1: String, // 4. 交通
+    #[allow(dead_code)]
     pub cat2: String, // 交通
+    #[allow(dead_code)]
     pub name: String, // 鉄道時系列（ライン）
     #[allow(dead_code)]
     pub version: String, // 2023年度版
