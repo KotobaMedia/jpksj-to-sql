@@ -52,7 +52,12 @@ impl Scraper {
                 }
             }
 
-            let page = Arc::new(data_page::scrape(&initial_item.url).await?);
+            let page_res = data_page::scrape(&initial_item.url).await;
+            if let Err(err) = page_res {
+                println!("[ERROR, skipping...] {:?}", err);
+                continue;
+            }
+            let page = Arc::new(page_res.unwrap());
 
             let mut zip_file_paths: Vec<PathBuf> = Vec::new();
             for item in &page.items {

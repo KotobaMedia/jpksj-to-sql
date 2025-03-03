@@ -194,8 +194,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
                 if let Some((attr_name_idx, desc_idx, type_idx)) = attr_indices {
                     // println!("Looking at row: {:?}", row);
                     let attr_name_str = row[attr_name_idx]
-                        .as_ref()
-                        .unwrap()
+                        .as_ref()?
                         .text()
                         .collect::<String>()
                         .trim()
@@ -207,8 +206,7 @@ fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<Da
                     let name_id = name_match.get(2).unwrap();
 
                     let mut description = row[desc_idx]
-                        .as_ref()
-                        .unwrap()
+                        .as_ref()?
                         .text()
                         .collect::<String>()
                         .trim()

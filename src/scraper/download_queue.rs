@@ -35,6 +35,7 @@ impl DownloadQueue {
                     // println!("processor {} loading: {}", i, item.file_url);
                     // println!("Downloading: {}", url);
                     let url = item.file_url;
+                    // TODO: retry the download if it fails
                     downloader::download_to_tmp(&url).await.unwrap();
                     pb_sender
                         .send(PBStatusUpdateMsg {
