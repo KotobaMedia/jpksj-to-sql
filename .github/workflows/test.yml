@@ -49,5 +49,8 @@ jobs:
             v1-temporary-files-
           path: tmp
 
+      - name: Build
+        run: cargo build --release --target ${{ matrix.job.arch }}
+
       - name: Run test
         run: cargo test
