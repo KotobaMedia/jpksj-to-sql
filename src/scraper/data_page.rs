@@ -116,16 +116,16 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
 
 #[derive(Debug, Serialize)]
 pub struct AttributeMetadata {
-    name: String,
-    description: String,
-    attr_type: String,
-    ref_url: Option<Url>,
+    pub name: String,
+    pub description: String,
+    pub attr_type: String,
+    pub ref_url: Option<Url>,
 }
 
 #[derive(Default, Debug, Serialize)]
 pub struct DataPageMetadata {
-    fundamental: HashMap<String, String>,
-    attribute: HashMap<String, AttributeMetadata>,
+    pub fundamental: HashMap<String, String>,
+    pub attribute: HashMap<String, AttributeMetadata>,
 }
 
 fn extract_metadata<'a, S: Selectable<'a>>(html: S, base_url: &Url) -> Result<DataPageMetadata> {

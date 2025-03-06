@@ -25,6 +25,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 tokio-postgres = { version = "0.7", features = ["with-geo-types-0_7", "with-serde_json-1"] }
+unicode-normalization = "0.1.24"
 url = { version = "2", features = ["serde"] }
 
 [dependencies.zip]

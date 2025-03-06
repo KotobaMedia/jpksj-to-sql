@@ -1,7 +1,5 @@
 #![warn(unused_extern_crates)]
 
-use std::path::PathBuf;
-
 use anyhow::{Context, Result};
 
 mod cli;
@@ -14,8 +12,9 @@ mod scraper;
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = cli::main();
-    let tmp = args.tmp_dir.unwrap_or_else(|| PathBuf::from("./tmp"));
-    context::set_tmp(tmp);
+    if let Some(tmp) = args.tmp_dir {
+        context::set_tmp(tmp);
+    }
     tokio::fs::create_dir_all(context::tmp()).await?;
 
     // Download all files first

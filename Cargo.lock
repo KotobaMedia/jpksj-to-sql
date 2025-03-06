@@ -1197,6 +1197,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-postgres",
+ "unicode-normalization",
  "url",
  "zip",
 ]

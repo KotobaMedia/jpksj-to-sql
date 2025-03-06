@@ -1,5 +1,5 @@
 use anyhow::Result;
-use calamine::{Data, DataType, Reader, Xlsx};
+use calamine::{Reader, Xlsx};
 use derive_builder::Builder;
 use regex::Regex;
 use std::vec;
@@ -7,6 +7,8 @@ use tokio::sync::OnceCell;
 use url::Url;
 
 use crate::downloader;
+
+use super::xslx_helpers::data_to_string;
 
 #[derive(Builder, Clone, Debug)]
 #[builder(derive(Debug))]
@@ -103,13 +105,6 @@ async fn download_mapping_definition_file() -> Result<downloader::DownloadedFile
     downloader::download_to_tmp(&url).await
 }
 
-fn data_to_string(data: &Data) -> Option<String> {
-    data.get_string()
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
-}
-
 async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
     let file = download_mapping_definition_file().await?;
     let path = file.path;
@@ -201,14 +196,10 @@ pub async fn find_mapping_def_for_entry(identifier: &str) -> Result<Option<Shape
 
 #[cfg(test)]
 mod tests {
-    use crate::context::set_tmp;
-    use std::path::PathBuf;
-
     use super::*;
 
     #[tokio::test]
     async fn test_parse_mapping_file() {
-        set_tmp(PathBuf::from("./tmp"));
         let result = parse_mapping_file().await;
         assert!(result.is_ok());
         let data = &result.unwrap();

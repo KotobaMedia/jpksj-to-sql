@@ -4,9 +4,11 @@ use crate::scraper::Dataset;
 use anyhow::Result;
 use derive_builder::Builder;
 
+mod admini_boundary;
 mod gdal;
 mod load_queue;
 mod mapping;
+mod xslx_helpers;
 mod zip_traversal;
 
 #[derive(Builder)]
@@ -23,6 +25,7 @@ impl Loader {
             load_queue.push(&dataset).await?;
         }
         load_queue.close().await?;
+        admini_boundary::load_admini_boundary(&self.postgres_url).await?;
         Ok(())
     }
 }
