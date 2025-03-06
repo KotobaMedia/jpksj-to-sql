@@ -147,6 +147,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "統廃合前の行政区域コード".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -156,6 +157,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "都道府県名（漢字）".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -165,6 +167,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "市区町村名（漢字）".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -174,6 +177,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "都道府県名（カナ）".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -183,6 +187,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "市区町村名（カナ）".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -192,6 +197,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "コードの改定区分".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -201,6 +207,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "改正年月日".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -210,6 +217,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "統廃合後の行政区域コード。全国地方公共団体コードに相当する値。".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -219,6 +227,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "改正後の名称".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -228,6 +237,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "改正後の名称（カナ）".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                     (
@@ -237,6 +247,7 @@ async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
                             description: "改正事由等".to_string(),
                             attr_type: "String".to_string(),
                             ref_url: None,
+                            r#ref: None,
                         },
                     ),
                 ]),

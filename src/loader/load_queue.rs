@@ -43,14 +43,13 @@ async fn load(
     let has_layer = gdal::has_layer(postgres_url, &mapping.identifier).await?;
     if skip_if_exists && has_layer {
         println!("Table already exists for {}, skipping", mapping.identifier);
-        return Ok(());
+    } else {
+        let vrt_path = vrt_tmp
+            .join(dataset.initial_item.identifier.clone())
+            .with_extension("vrt");
+        gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
+        gdal::load_to_postgres(&vrt_path, postgres_url).await?;
     }
-
-    let vrt_path = vrt_tmp
-        .join(dataset.initial_item.identifier.clone())
-        .with_extension("vrt");
-    gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
-    gdal::load_to_postgres(&vrt_path, postgres_url).await?;
 
     metadata_conn.create_dataset(dataset).await?;
     Ok(())
