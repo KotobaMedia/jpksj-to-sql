@@ -56,11 +56,26 @@
                     // データベース上のカラム名
                     "name": "行政区域コード",
                     // 参照先情報がある場合はそのリンク。ない場合は「null」
-                    // TODO: このデータも取り込む
                     "ref_url": "https://nlftp.mlit.go.jp/ksj/gml/codelist/AdminiBoundary_CD.xlsx",
                     // 値の型
                     "attr_type": "コードリスト「行政区域コード」",
                     "description": "都道府県コードと市区町村コードからなる、行政区を特定するためのコード"
+                },
+                "P05_002": {
+                    "ref": {
+                        "Code": {
+                            "1": "本庁（市役所、区役所、町役場、村役場）",
+                            "2": "支所、出張所、連絡所",
+                            "3": "上記以外の行政サービス施設",
+                            "4": "公立公民館",
+                            "5": "集会施設"
+                        }
+                        // 定数の場合は `"Enum": ["値1","値2",...]
+                    },
+                    "name": "施設分類",
+                    "ref_url": "https://nlftp.mlit.go.jp/ksj/gml/codelist/PubOfficeCd.html",
+                    "attr_type": "コードリスト「施設分類コード」",
+                    "description": "市町村役場等及び公的集会施設の分類を表すコード"
                 },
                 // ...
             },
