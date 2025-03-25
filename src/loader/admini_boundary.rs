@@ -1,18 +1,11 @@
 //! Loader for AdminiBoundary_CD.xslx
 //! This module is responsible for loading the AdminiBoundary_CD.xslx file into the database.
 
-use crate::{
-    downloader,
-    metadata::MetadataConnection,
-    scraper::{
-        data_page::{AttributeMetadata, DataPage, DataPageMetadata},
-        initial::DataItem,
-        Dataset,
-    },
-};
+use crate::{downloader, metadata::MetadataConnection};
 use anyhow::{Context, Result};
 use calamine::{Reader, Xlsx};
-use std::{collections::HashMap, sync::Arc, vec};
+use km_to_sql::metadata::{ColumnMetadata, TableMetadata};
+use std::vec;
 use tokio_postgres::{types::ToSql, NoTls};
 use unicode_normalization::UnicodeNormalization;
 use url::Url;
@@ -117,146 +110,102 @@ async fn load(postgres_url: &str, parsed: &ParsedFile) -> Result<()> {
 async fn create_admini_boundary_metadata(postgres_url: &str) -> Result<()> {
     let metadata_conn = MetadataConnection::new(postgres_url).await?;
 
-    let dataset = Dataset {
-        initial_item: DataItem {
-            category1_name: "行政区域".to_string(),
-            category2_name: "行政区域コード".to_string(),
-            name: "行政区域コード".to_string(),
-            data_source: "".to_string(),
-            data_accuracy: "".to_string(),
-            metadata_xml: Url::parse(
-                "https://nlftp.mlit.go.jp/ksj/gml/codelist/AdminiBoundary_CD.xlsx",
-            )?,
-            identifier: "admini_boundary_cd".to_string(),
-            usage: "".to_string(),
-            url: Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/AdminiBoundary_CD.xlsx")?,
-        },
-        page: Arc::new(DataPage {
-            url: Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/AdminiBoundary_CD.xlsx")?,
-            items: vec![],
-            metadata: DataPageMetadata {
-                fundamental: HashMap::from([
-                    ("内容".to_string(), "コードリスト「行政区域コード」の定義。統廃合による欠番の関連付けに使ってください。このテーブルに位置情報は存在しません。行政堺は「改正後のコード」を n03_union の「全国地方公共団体コード」にジョインしてご利用ください。".to_string()),
-                    ("データ形状".to_string(), "表データ".to_string()),
-                ]),
-                attribute: HashMap::from([
-                    (
-                        "行政区域コード".to_string(),
-                        AttributeMetadata {
-                            name: "行政区域コード".to_string(),
-                            description: "統廃合前の行政区域コード".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "都道府県名（漢字）".to_string(),
-                        AttributeMetadata {
-                            name: "都道府県名（漢字）".to_string(),
-                            description: "都道府県名（漢字）".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "市区町村名（漢字）".to_string(),
-                        AttributeMetadata {
-                            name: "市区町村名（漢字）".to_string(),
-                            description: "市区町村名（漢字）".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "都道府県名（カナ）".to_string(),
-                        AttributeMetadata {
-                            name: "都道府県名（カナ）".to_string(),
-                            description: "都道府県名（カナ）".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "市区町村名（カナ）".to_string(),
-                        AttributeMetadata {
-                            name: "市区町村名（カナ）".to_string(),
-                            description: "市区町村名（カナ）".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "コードの改定区分".to_string(),
-                        AttributeMetadata {
-                            name: "コードの改定区分".to_string(),
-                            description: "コードの改定区分".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "改正年月日".to_string(),
-                        AttributeMetadata {
-                            name: "改正年月日".to_string(),
-                            description: "改正年月日".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "改正後のコード".to_string(),
-                        AttributeMetadata {
-                            name: "改正後のコード".to_string(),
-                            description: "統廃合後の行政区域コード。全国地方公共団体コードに相当する値。".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "改正後の名称".to_string(),
-                        AttributeMetadata {
-                            name: "改正後の名称".to_string(),
-                            description: "改正後の名称".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "改正後の名称（カナ）".to_string(),
-                        AttributeMetadata {
-                            name: "改正後の名称（カナ）".to_string(),
-                            description: "改正後の名称（カナ）".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                    (
-                        "改正事由等".to_string(),
-                        AttributeMetadata {
-                            name: "改正事由等".to_string(),
-                            description: "改正事由等".to_string(),
-                            attr_type: "String".to_string(),
-                            ref_url: None,
-                            r#ref: None,
-                        },
-                    ),
-                ]),
+    let metadata = TableMetadata {
+        name: "行政区域コード".to_string(),
+        desc: None,
+        source: Some("国土数値情報".to_string()),
+        source_url: Some(
+            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/AdminiBoundary_CD.xlsx").unwrap(),
+        ),
+        license: None,
+        license_url: None,
+        primary_key: Some("行政区域コード".to_string()),
+        columns: vec![
+            ColumnMetadata {
+                name: "行政区域コード".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
             },
-        }),
-        zip_file_paths: vec![],
+            ColumnMetadata {
+                name: "都道府県名（漢字）".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "市区町村名（漢字）".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "都道府県名（カナ）".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "市区町村名（カナ）".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "コードの改定区分".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "改正年月日".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "改正後のコード".to_string(),
+                desc: Some(
+                    "統廃合後の行政区域コード。全国地方公共団体コードに相当する値。".to_string(),
+                ),
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "改正後の名称".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "改正後の名称（カナ）".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+            ColumnMetadata {
+                name: "改正事由等".to_string(),
+                desc: None,
+                data_type: "varchar".to_string(),
+                foreign_key: None,
+                enum_values: None,
+            },
+        ],
     };
 
-    metadata_conn.create_dataset(&dataset).await?;
+    metadata_conn
+        .create_dataset("admini_boundary_cd", &metadata)
+        .await?;
     Ok(())
 }
 

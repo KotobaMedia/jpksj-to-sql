@@ -23,8 +23,10 @@ async fn load(
     let vrt_tmp = tmp.join("vrt");
     tokio::fs::create_dir_all(&vrt_tmp).await?;
 
+    let identifier = &dataset.initial_item.identifier;
+
     // first, let's get the entry for this dataset from the mapping file
-    let mapping = mapping::find_mapping_def_for_entry(&dataset.initial_item.identifier)
+    let mapping = mapping::find_mapping_def_for_entry(&identifier)
         .await?
         .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset: {}", dataset))?;
 
@@ -44,14 +46,13 @@ async fn load(
     if skip_if_exists && has_layer {
         println!("Table already exists for {}, skipping", mapping.identifier);
     } else {
-        let vrt_path = vrt_tmp
-            .join(dataset.initial_item.identifier.clone())
-            .with_extension("vrt");
+        let vrt_path = vrt_tmp.join(&identifier).with_extension("vrt");
         gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
         gdal::load_to_postgres(&vrt_path, postgres_url).await?;
     }
 
-    metadata_conn.create_dataset(dataset).await?;
+    let metadata = metadata_conn.build_metadata_from_dataset(dataset).await?;
+    metadata_conn.create_dataset(&identifier, &metadata).await?;
     Ok(())
 }
 

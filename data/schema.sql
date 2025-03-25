@@ -1,11 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS "postgis";
 
-CREATE TABLE IF NOT EXISTS "datasets" (
-    "table_name" TEXT PRIMARY KEY NOT NULL,
-    "metadata" JSONB NOT NULL
-    -- "extents": GEOMETRY
-);
-
 CREATE TABLE IF NOT EXISTS "admini_boundary_cd" (
     "行政区域コード" VARCHAR(5) PRIMARY KEY NOT NULL,
     "都道府県名（漢字）" TEXT,

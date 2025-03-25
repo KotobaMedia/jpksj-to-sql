@@ -115,7 +115,7 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
     })
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub enum RefType {
     Enum(Vec<String>),
     Code(HashMap<String, String>),
@@ -221,7 +221,7 @@ async fn parse_ref_from_url(url: &Url) -> Result<Option<RefType>> {
     Err(anyhow!("ref table not found"))
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AttributeMetadata {
     pub name: String,
     pub description: String,
