@@ -432,31 +432,27 @@ fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
         .filter(|item| item.crs == "世界測地系")
         .collect();
 
-    // Step 2: If any item has area == "全国", narrow to those items only.
-    let area_filtered: Vec<DataItem> = if crs_filtered.iter().any(|item| item.area == "全国") {
-        crs_filtered
-            .into_iter()
-            .filter(|item| item.area == "全国")
-            .collect()
-    } else {
-        crs_filtered
-    };
-
-    // Step 3: Determine the most recent year among items that have one.
-    let max_recency = area_filtered
-        .iter()
-        .filter_map(|item| parse_recency(item))
-        .max();
-
-    if let Some(max_year) = max_recency {
-        area_filtered
-            .into_iter()
-            .filter(|item| parse_recency(item) == Some(max_year))
-            .collect()
-    } else {
-        // No valid recency info; return all area_filtered items.
-        area_filtered
+    // Step 2: Group items by area.
+    let mut area_groups: HashMap<String, Vec<DataItem>> = HashMap::new();
+    for item in crs_filtered {
+        area_groups.entry(item.area.clone()).or_default().push(item);
     }
+
+    // Step 3: For each area evaluate the max recency and filter items accordingly.
+    let mut result = Vec::new();
+    for (_area, group) in area_groups {
+        let max_recency = group.iter().filter_map(|item| parse_recency(item)).max();
+        if let Some(max_year) = max_recency {
+            result.extend(
+                group
+                    .into_iter()
+                    .filter(|item| parse_recency(item) == Some(max_year)),
+            );
+        } else {
+            result.extend(group);
+        }
+    }
+    result
 }
 
 #[cfg(test)]
