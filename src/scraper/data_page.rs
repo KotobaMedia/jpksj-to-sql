@@ -435,6 +435,10 @@ fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
     // Step 2: Group items by area.
     let mut area_groups: HashMap<String, Vec<DataItem>> = HashMap::new();
     for item in crs_filtered {
+        // If 全国 is already in the map, and we aren't in the 全国 group, skip this item.
+        if area_groups.contains_key("全国") && item.area != "全国" {
+            continue;
+        }
         area_groups.entry(item.area.clone()).or_default().push(item);
     }
 
