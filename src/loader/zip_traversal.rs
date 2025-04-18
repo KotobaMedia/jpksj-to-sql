@@ -58,11 +58,25 @@ pub async fn matching_shapefiles_in_zip(
     let mut all_paths = {
         let shp_tmp = shp_tmp.clone();
         let zip_path = zip_path.clone();
-        tokio::task::spawn_blocking(move || {
-            extract_zip(&shp_tmp, &zip_path, &matchers)
-                .with_context(|| format!("when extracting {}", zip_path.display()))
-        })
-        .await??
+        if mapping.identifier == "A33" {
+            // A33 shapefiles don't match the regex, so we'll skip this part and
+            // fall back to the expanded matchers, focusing on Polygon files only
+            let expanded_matchers = vec![Regex::new(
+                r"Po?lygon(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
+            )?];
+
+            tokio::task::spawn_blocking(move || {
+                extract_zip(&shp_tmp, &zip_path, &expanded_matchers)
+                    .with_context(|| format!("when extracting {}", zip_path.display()))
+            })
+            .await??
+        } else {
+            tokio::task::spawn_blocking(move || {
+                extract_zip(&shp_tmp, &zip_path, &matchers)
+                    .with_context(|| format!("when extracting {}", zip_path.display()))
+            })
+            .await??
+        }
     };
 
     if all_paths.is_empty() {
@@ -85,6 +99,16 @@ pub async fn matching_shapefiles_in_zip(
         .filter(|p| p.extension().unwrap() == "shp")
         .cloned()
         .collect::<Vec<_>>();
+
+    // println!(
+    //     "Found {} shapefiles: \n{}",
+    //     shapefile_paths.len(),
+    //     shapefile_paths
+    //         .iter()
+    //         .map(|s| format!("- {}", s.display()))
+    //         .collect::<Vec<_>>()
+    //         .join("\n")
+    // );
 
     Ok(shapefile_paths)
 }
