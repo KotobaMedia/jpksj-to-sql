@@ -111,6 +111,42 @@ macOS の場合、GitHub Release からダウンロードしたバイナリが G
 
 ダウンロードした ZIP ファイルや解凍した shapefile をデフォルトで実行ディレクトリ内 `./tmp` に保存されます。
 
+### Docker環境での利用方法
+
+Docker環境を使うことで、PostgreSQLとGDALの設定を自動化し、簡単に利用することができます。
+
+1. リポジトリをクローンします。
+   ```
+   git clone https://github.com/keichan34/jpksj-to-sql.git
+   cd jpksj-to-sql
+   ```
+
+2. Dockerコンテナをビルドして起動します。
+   ```
+   docker compose build
+   docker compose up
+   ```
+
+3. アプリケーションのログを確認するには:
+   ```
+   docker compose logs -f jpksj-to-sql
+   ```
+
+4. データベースに接続するには:
+   ```
+   docker compose exec db psql -U postgres -d jpksj
+   ```
+
+Docker環境では以下の設定が適用されます：
+- PostgreSQL + PostGIS（バージョン15-3.4）がデータベースコンテナとして実行されます
+- データベースのデータはDockerボリューム（postgres-data）に保存されます
+- ダウンロードファイルはホストマシンの`./tmp`ディレクトリに保存されます
+- デフォルトのデータベース接続情報:
+  - ホスト: `db`
+  - ユーザー: `postgres`
+  - パスワード: `postgres`
+  - データベース名: `jpksj`
+
 ## コンパイル
 
 Rust の開発環境が必要です。構築後、 cargo を使ってください
