@@ -34,6 +34,11 @@ pub struct ShapefileMetadata {
     pub shapefile_name_regex: Vec<Regex>,
 
     pub field_mappings: Vec<(String, String)>,
+
+    /// 元データの識別子
+    /// インポート識別子はインポート後のテーブル名になります。これは、単一データセットに対して複数テーブルとして扱う場合に必要です。
+    pub original_identifier: String,
+    /// インポート識別子
     pub identifier: String,
 }
 
@@ -100,6 +105,52 @@ impl ShapefileMetadataBuilder {
     }
 }
 
+fn should_start_new_metadata_record(
+    builder: &ShapefileMetadataBuilder,
+    row: &[calamine::Data],
+) -> bool {
+    let cat1 = data_to_string(&row[0]);
+    let cat2 = data_to_string(&row[1]);
+    let name = data_to_string(&row[2]);
+    let identifier = data_to_string(&row[8]);
+    let mapping_id = data_to_string(&row[7]);
+    if let (Some(cat1), Some(cat2), Some(name)) = (cat1, cat2, name) {
+        if builder.cat1.clone().is_some_and(|s| s != cat1)
+            || builder.cat2.clone().is_some_and(|s| s != cat2)
+            || builder.name.clone().is_some_and(|s| s != name)
+        {
+            return true;
+        }
+    }
+    if let (Some(identifier), Some(mapping_id)) = (identifier, mapping_id) {
+        // 例外: 医療圏。１，２，３次医療圏はそれぞれ別テーブルとして扱う。
+        // -> 識別子はそれぞれA38だが、属性コードの頭4文字が異なる（A38a, A38b, A38c）
+        if identifier == "A38"
+            && builder.field_mappings.as_ref().is_some_and(|m| {
+                m.last().is_some_and(|(_, prev_mapping_id)| {
+                    !mapping_id.starts_with(&prev_mapping_id.chars().take(4).collect::<String>())
+                })
+            })
+        {
+            return true;
+        }
+    }
+    false
+}
+
+fn extract_identifier_from_row(row: &[calamine::Data]) -> Option<String> {
+    let identifier = data_to_string(&row[8]);
+    if let Some(ref id) = identifier {
+        if id == "A38" {
+            if let Some(mapping_id) = data_to_string(&row[7]) {
+                // Take the first 4 characters of mapping_id, or the whole string if shorter
+                return Some(mapping_id.chars().take(4).collect());
+            }
+        }
+    }
+    identifier
+}
+
 async fn download_mapping_definition_file() -> Result<downloader::DownloadedFile> {
     let url = Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/shape_property_table2.xlsx")?;
     downloader::download_to_tmp(&url).await
@@ -116,6 +167,8 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
     let mut builder = ShapefileMetadataBuilder::default();
     for row in sheet.rows() {
         let cat1 = data_to_string(&row[0]);
+        let cat2 = data_to_string(&row[1]);
+        let name = data_to_string(&row[2]);
 
         if !data_started {
             if cat1.is_some_and(|s| s == "大分類") {
@@ -124,23 +177,21 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
             continue;
         }
 
-        if let Some(((cat1, cat2), name)) = cat1
-            .zip(data_to_string(&row[1]))
-            .zip(data_to_string(&row[2]))
-        {
-            if builder.cat1.clone().is_some_and(|s| s != cat1)
-                || builder.cat2.clone().is_some_and(|s| s != cat2)
-                || builder.name.clone().is_some_and(|s| s != name)
-            {
-                match builder.build() {
-                    Ok(metadata) => out.push(metadata),
-                    Err(e) => panic!("Error: {}, {:?}, current out: {:?}", e, builder, out),
-                }
-                builder = ShapefileMetadataBuilder::default();
+        if should_start_new_metadata_record(&builder, row) {
+            match builder.build() {
+                Ok(metadata) => out.push(metadata),
+                Err(e) => panic!("Error: {}, {:?}, current out: {:?}", e, builder, out),
             }
+            builder = ShapefileMetadataBuilder::default();
+        }
 
+        if let Some(cat1) = cat1 {
             builder.cat1(cat1);
+        }
+        if let Some(cat2) = cat2 {
             builder.cat2(cat2);
+        }
+        if let Some(name) = name {
             builder.name(name);
         }
 
@@ -150,7 +201,12 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
         if let Some(data_year) = data_to_string(&row[4]) {
             builder.data_year(data_year);
         }
-        if let Some(identifier) = data_to_string(&row[8]) {
+        if let Some(original_identifier) = data_to_string(&row[8]) {
+            if builder.original_identifier.is_none() {
+                builder.original_identifier(original_identifier);
+            }
+        }
+        if let Some(identifier) = extract_identifier_from_row(row) {
             if builder.identifier.is_none() {
                 builder.identifier(identifier);
             }
@@ -158,6 +214,8 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
         if let Some(shapefile_matcher) = data_to_string(&row[5]) {
             let mut matchers = builder.shapefile_matcher.clone().unwrap_or(vec![]);
             shapefile_matcher
+                .replace("\r\n", "\n")
+                .replace("A38-YY_PP_", "A38-YY_") // 医療圏のshapefile名が間違っている
                 .split("\n")
                 .for_each(|s| matchers.push(s.to_string()));
             builder.shapefile_matcher(matchers);
@@ -186,12 +244,13 @@ pub async fn mapping_defs() -> Result<&'static Vec<ShapefileMetadata>> {
         .await
 }
 
-pub async fn find_mapping_def_for_entry(identifier: &str) -> Result<Option<ShapefileMetadata>> {
+pub async fn find_mapping_def_for_entry(identifier: &str) -> Result<Vec<ShapefileMetadata>> {
     let defs = mapping_defs().await?;
     Ok(defs
         .iter()
-        .find(|def| def.identifier == identifier)
-        .cloned())
+        .filter(|def| def.original_identifier == identifier)
+        .cloned()
+        .collect::<Vec<_>>())
 }
 
 #[cfg(test)]
@@ -215,5 +274,13 @@ mod tests {
             vec!["A03-YY_SYUTO-g_ThreeMajorMetroPlanArea.shp"]
         );
         assert_eq!(metadata.field_mappings.len(), 8);
+
+        // find 医療圏
+        let metadata = data
+            .iter()
+            .filter(|m| m.name.contains("医療圏"))
+            .collect::<Vec<_>>();
+        println!("metadata: {:?}", metadata);
+        assert_eq!(metadata.len(), 3);
     }
 }
