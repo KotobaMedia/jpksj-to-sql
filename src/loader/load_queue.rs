@@ -30,7 +30,7 @@ async fn load(
 
     for mapping in mappings {
         // overwrite the identifier with the one from the mapping file
-        let identifier = mapping.identifier.clone();
+        let identifier = mapping.identifier.clone().to_lowercase();
         // println!(
         //     "Loading dataset: {} - {} - {} as {}",
         //     mapping.cat1, mapping.cat2, mapping.name, mapping.identifier
@@ -54,7 +54,10 @@ async fn load(
             gdal::load_to_postgres(&vrt_path, postgres_url).await?;
         }
 
-        let metadata = metadata_conn.build_metadata_from_dataset(dataset).await?;
+        let metadata = metadata_conn
+            .build_metadata_from_dataset(&identifier, &mapping, dataset)
+            .await?;
+        // println!("Metadata: {:?}", metadata);
         metadata_conn.create_dataset(&identifier, &metadata).await?;
     }
     Ok(())

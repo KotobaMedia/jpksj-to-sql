@@ -17,7 +17,6 @@ pub struct ShapefileMetadata {
     pub cat1: String, // 4. 交通
     #[allow(dead_code)]
     pub cat2: String, // 交通
-    #[allow(dead_code)]
     pub name: String, // 鉄道時系列（ライン）
     #[allow(dead_code)]
     pub version: String, // 2023年度版
@@ -45,6 +44,16 @@ pub struct ShapefileMetadata {
 // fn create_shapefile_name_regex(_template_string: String) -> Result<Regex, String> {
 //     Regex::new(r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$").map_err(|e| e.to_string())
 // }
+
+fn format_name(name: &str) -> String {
+    let mut formatted_name = name.to_string();
+    // Remove any parentheses and their contents
+    let remove_re = Regex::new(r"（[^）]+）").unwrap();
+    formatted_name = remove_re.replace_all(&formatted_name, "").to_string();
+    // Remove leading and trailing whitespace
+    formatted_name = formatted_name.trim().to_string();
+    formatted_name
+}
 
 fn create_shapefile_name_regex(template_string: String) -> Result<Regex, String> {
     let remove_re = Regex::new(r"（[^）]+）").unwrap();
@@ -110,7 +119,8 @@ fn split_shapefile_matcher(s: &str) -> Vec<String> {
     s.replace("\r\n", "\n")
         .replace("A38-YY_PP_", "A38-YY_") // 医療圏のshapefile名が間違っている
         .split('\n')
-        .map(|s| s.to_string())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
         .collect()
 }
 
@@ -120,7 +130,9 @@ fn should_start_new_metadata_record(
 ) -> bool {
     let cat1 = data_to_string(&row[0]);
     let cat2 = data_to_string(&row[1]);
-    let shapefile_names = data_to_string(&row[5]).map(|s| split_shapefile_matcher(&s));
+    let shapefile_names = data_to_string(&row[5])
+        .map(|s| split_shapefile_matcher(&s))
+        .and_then(|v| if v.is_empty() { None } else { Some(v) });
     let original_identifier = data_to_string(&row[8]);
     let mapping_id = data_to_string(&row[7]);
     if let (Some(cat1), Some(cat2), Some(shapefile_names)) = (cat1, cat2, shapefile_names) {
@@ -224,10 +236,9 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
         }
         if let Some(name) = data_to_string(&row[2]) {
             if builder.name.is_none() {
-                builder.name(name.clone());
+                builder.name(format_name(&name));
             }
         }
-
         if let Some(version) = data_to_string(&row[3]) {
             builder.version(version);
         }
@@ -285,7 +296,7 @@ mod tests {
         let metadata = &data[0];
         assert_eq!(metadata.cat1, "2. 政策区域");
         assert_eq!(metadata.cat2, "大都市圏・条件不利地域");
-        assert_eq!(metadata.name, "三大都市圏計画区域（ポリゴン）");
+        assert_eq!(metadata.name, "三大都市圏計画区域");
         assert_eq!(metadata.version, "2003年度版");
         assert_eq!(metadata.data_year, "平成15年度");
         assert_eq!(
@@ -299,7 +310,10 @@ mod tests {
             .iter()
             .filter(|m| m.name.contains("医療圏"))
             .collect::<Vec<_>>();
-        println!("metadata: {:?}", metadata);
         assert_eq!(metadata.len(), 3);
+        assert_eq!(
+            metadata.iter().map(|m| m.name.clone()).collect::<Vec<_>>(),
+            vec!["一次医療圏", "二次医療圏", "三次医療圏"]
+        );
     }
 }

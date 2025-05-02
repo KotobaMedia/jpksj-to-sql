@@ -7,7 +7,7 @@ use derive_builder::Builder;
 mod admini_boundary;
 mod gdal;
 mod load_queue;
-mod mapping;
+pub mod mapping;
 mod xslx_helpers;
 mod zip_traversal;
 
