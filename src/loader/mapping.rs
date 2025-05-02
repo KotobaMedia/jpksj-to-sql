@@ -105,24 +105,36 @@ impl ShapefileMetadataBuilder {
     }
 }
 
+/// Splits and normalizes a shapefile matcher string into a vector of strings.
+fn split_shapefile_matcher(s: &str) -> Vec<String> {
+    s.replace("\r\n", "\n")
+        .replace("A38-YY_PP_", "A38-YY_") // 医療圏のshapefile名が間違っている
+        .split('\n')
+        .map(|s| s.to_string())
+        .collect()
+}
+
 fn should_start_new_metadata_record(
     builder: &ShapefileMetadataBuilder,
     row: &[calamine::Data],
 ) -> bool {
     let cat1 = data_to_string(&row[0]);
     let cat2 = data_to_string(&row[1]);
-    let name = data_to_string(&row[2]);
-    let identifier = data_to_string(&row[8]);
+    let shapefile_names = data_to_string(&row[5]).map(|s| split_shapefile_matcher(&s));
+    let original_identifier = data_to_string(&row[8]);
     let mapping_id = data_to_string(&row[7]);
-    if let (Some(cat1), Some(cat2), Some(name)) = (cat1, cat2, name) {
+    if let (Some(cat1), Some(cat2), Some(shapefile_names)) = (cat1, cat2, shapefile_names) {
         if builder.cat1.clone().is_some_and(|s| s != cat1)
             || builder.cat2.clone().is_some_and(|s| s != cat2)
-            || builder.name.clone().is_some_and(|s| s != name)
+            || builder
+                .shapefile_matcher
+                .clone()
+                .is_some_and(|s| s != shapefile_names)
         {
             return true;
         }
     }
-    if let (Some(identifier), Some(mapping_id)) = (identifier, mapping_id) {
+    if let (Some(identifier), Some(mapping_id)) = (original_identifier, mapping_id) {
         // 例外: 医療圏。１，２，３次医療圏はそれぞれ別テーブルとして扱う。
         // -> 識別子はそれぞれA38だが、属性コードの頭4文字が異なる（A38a, A38b, A38c）
         if identifier == "A38"
@@ -167,8 +179,6 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
     let mut builder = ShapefileMetadataBuilder::default();
     for row in sheet.rows() {
         let cat1 = data_to_string(&row[0]);
-        let cat2 = data_to_string(&row[1]);
-        let name = data_to_string(&row[2]);
 
         if !data_started {
             if cat1.is_some_and(|s| s == "大分類") {
@@ -180,19 +190,42 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
         if should_start_new_metadata_record(&builder, row) {
             match builder.build() {
                 Ok(metadata) => out.push(metadata),
-                Err(e) => panic!("Error: {}, {:?}, current out: {:?}", e, builder, out),
+                Err(e) => panic!("Error: {}, {:?}", e, builder),
             }
             builder = ShapefileMetadataBuilder::default();
+        }
+
+        if let Some(original_identifier) = data_to_string(&row[8]) {
+            if builder.original_identifier.is_none() {
+                builder.original_identifier(original_identifier);
+            }
+        }
+        if let Some(identifier) = extract_identifier_from_row(row) {
+            if builder.identifier.is_none() {
+                builder.identifier(identifier.clone());
+            }
+
+            let name_override = match identifier.as_str() {
+                "A38a" => Some("一次医療圏"),
+                "A38b" => Some("二次医療圏"),
+                "A38c" => Some("三次医療圏"),
+                _ => None,
+            };
+            if let Some(name) = name_override {
+                builder.name(name.to_string());
+            }
         }
 
         if let Some(cat1) = cat1 {
             builder.cat1(cat1);
         }
-        if let Some(cat2) = cat2 {
+        if let Some(cat2) = data_to_string(&row[1]) {
             builder.cat2(cat2);
         }
-        if let Some(name) = name {
-            builder.name(name);
+        if let Some(name) = data_to_string(&row[2]) {
+            if builder.name.is_none() {
+                builder.name(name.clone());
+            }
         }
 
         if let Some(version) = data_to_string(&row[3]) {
@@ -201,23 +234,9 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
         if let Some(data_year) = data_to_string(&row[4]) {
             builder.data_year(data_year);
         }
-        if let Some(original_identifier) = data_to_string(&row[8]) {
-            if builder.original_identifier.is_none() {
-                builder.original_identifier(original_identifier);
-            }
-        }
-        if let Some(identifier) = extract_identifier_from_row(row) {
-            if builder.identifier.is_none() {
-                builder.identifier(identifier);
-            }
-        }
         if let Some(shapefile_matcher) = data_to_string(&row[5]) {
             let mut matchers = builder.shapefile_matcher.clone().unwrap_or(vec![]);
-            shapefile_matcher
-                .replace("\r\n", "\n")
-                .replace("A38-YY_PP_", "A38-YY_") // 医療圏のshapefile名が間違っている
-                .split("\n")
-                .for_each(|s| matchers.push(s.to_string()));
+            matchers.extend(split_shapefile_matcher(&shapefile_matcher));
             builder.shapefile_matcher(matchers);
         }
 

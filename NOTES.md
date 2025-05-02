@@ -1,3 +1,7 @@
+```
+$PG_CONN_STR="host=..."
+```
+
 # `A40` - 津波浸水深
 
 「津波浸水深の区分」のフォーマットが統一化されていないためこちらで正規化しています。
@@ -107,5 +111,22 @@ FROM a40 t;
 FlatGeobuf へのエクスポート
 
 ```
-ogr2ogr -f FlatGeobuf a40_normalized.fgb PG:"..." a40_normalized
+ogr2ogr -f FlatGeobuf a40_normalized.fgb PG:"$PG_CONN_STR" a40_normalized
+```
+
+# `A38` - 医療圏
+
+```
+# 3次医療圏 (都府県＋北海道6圏)
+ogr2ogr -f FlatGeobuf a38_3.fgb PG:"$PG_CONN_STR" a38c
+# 2次医療圏 (3次より細かい、簡易的な集計データも付与)
+ogr2ogr -f FlatGeobuf a38_2.fgb PG:"$PG_CONN_STR" a38b
+# 1次医療圏 (2次より更に細かい)
+ogr2ogr -f FlatGeobuf a38_1.fgb PG:"$PG_CONN_STR" a38a
+```
+
+タイル化
+
+```
+tippecanoe -n "医療圏" -N "3次、2次、1次医療圏のポリゴンデータ" -A "<a href=\"https://nlftp.mlit.go.jp/ksj/other/agreement_01.html\">「国土数値情報(医療圏データ)」(国土交通省)</a>をもとに<a href=\"https://kotobamedia.com\">KotobaMedia株式会社</a>作成" -Z0 -z13 -o a38.pmtiles -Ltier1:./a38_1.fgb -Ltier2:./a38_2.fgb -Ltier3:./a38_3.fgb
 ```
