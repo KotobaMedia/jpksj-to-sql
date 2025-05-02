@@ -181,5 +181,5 @@ cargo build
 
 こちらのレポジトリのソースコードには MIT ライセンスのもとで提供されます。
 
-> ![IMPORTANT]
+> [!IMPORTANT]
 > このツールでダウンロード・加工したデータを利用するときに、[国土数値情報の利用規約](https://nlftp.mlit.go.jp/ksj/other/agreement_01.html)を確認した上で利用ください。
