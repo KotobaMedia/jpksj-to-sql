@@ -18,9 +18,11 @@ fn extract_zip(
     let zip_filename = zip_path.file_name().unwrap().to_str().unwrap();
     let outdir = outdir.join(zip_filename).with_extension("");
     let mut zip = ZipArchive::new(file)?;
+    // println!("Matchers: {:?}", matchers);
     for i in 0..zip.len() {
         let mut file = zip.by_index(i)?;
-        let file_name = file.name().to_string();
+        // replace Windows backslashes with forward slashes
+        let file_name = file.name().to_string().replace("\\", "/");
         let dest_path = outdir.join(&file_name);
         let basedir = dest_path.parent().unwrap();
 
@@ -80,6 +82,7 @@ pub async fn matching_shapefiles_in_zip(
     };
 
     if all_paths.is_empty() {
+        println!("No shapefiles found in zip file, expanding matchers...");
         // since we didn't get any shapefiles this time, let's expand the matchers to see if we can find any
         let expanded_matchers = vec![Regex::new(
             r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
@@ -130,6 +133,7 @@ mod tests {
             data_year: "data_year".to_string(),
             shapefile_matcher: vec!["A30a5-YY_mmmm_SedimentDisasterAndSnowslide.shp".to_string()],
             field_mappings: vec![],
+            original_identifier: "original_identifier".to_string(),
             identifier: "identifier".to_string(),
             shapefile_name_regex: vec![Regex::new(
                 r"A30a5-\d{2}_\d{4}_SedimentDisasterAndSnowslide(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
@@ -153,6 +157,7 @@ mod tests {
             data_year: "data_year".to_string(),
             shapefile_matcher: vec!["P23a-YY_PP.shp".to_string()],
             field_mappings: vec![],
+            original_identifier: "original_identifier".to_string(),
             identifier: "identifier".to_string(),
             shapefile_name_regex: vec![Regex::new(
                 r"(?:^|/)P23a-\d{2}_\d{2}(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",

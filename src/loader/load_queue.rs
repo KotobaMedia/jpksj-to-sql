@@ -25,34 +25,41 @@ async fn load(
 
     let identifier = &dataset.initial_item.identifier;
 
-    // first, let's get the entry for this dataset from the mapping file
-    let mapping = mapping::find_mapping_def_for_entry(&identifier)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("No mapping found for dataset: {}", dataset))?;
+    // first, let's get the entries for this dataset from the mapping file
+    let mappings = mapping::find_mapping_def_for_entry(&identifier).await?;
 
-    // println!(
-    //     "Loading dataset: {} - {} - {} as {}",
-    //     mapping.cat1, mapping.cat2, mapping.name, mapping.identifier
-    // );
+    for mapping in mappings {
+        // overwrite the identifier with the one from the mapping file
+        let identifier = mapping.identifier.clone().to_lowercase();
+        // println!(
+        //     "Loading dataset: {} - {} - {} as {}",
+        //     mapping.cat1, mapping.cat2, mapping.name, mapping.identifier
+        // );
 
-    let mut shapefiles: Vec<PathBuf> = Vec::new();
-    for zip_file_path in &dataset.zip_file_paths {
-        let shapefiles_in_zip =
-            zip_traversal::matching_shapefiles_in_zip(tmp, zip_file_path, &mapping).await?;
-        shapefiles.extend(shapefiles_in_zip);
+        let mut shapefiles: Vec<PathBuf> = Vec::new();
+        for zip_file_path in &dataset.zip_file_paths {
+            let shapefiles_in_zip =
+                zip_traversal::matching_shapefiles_in_zip(tmp, zip_file_path, &mapping).await?;
+            shapefiles.extend(shapefiles_in_zip);
+        }
+
+        // println!("Found {} shapefiles: {:?}", shapefiles.len(), shapefiles);
+
+        let has_layer = gdal::has_layer(postgres_url, &mapping.identifier).await?;
+        if skip_if_exists && has_layer {
+            println!("Table already exists for {}, skipping", mapping.identifier);
+        } else {
+            let vrt_path = vrt_tmp.join(&identifier).with_extension("vrt");
+            gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
+            gdal::load_to_postgres(&vrt_path, postgres_url).await?;
+        }
+
+        let metadata = metadata_conn
+            .build_metadata_from_dataset(&identifier, &mapping, dataset)
+            .await?;
+        // println!("Metadata: {:?}", metadata);
+        metadata_conn.create_dataset(&identifier, &metadata).await?;
     }
-
-    let has_layer = gdal::has_layer(postgres_url, &mapping.identifier).await?;
-    if skip_if_exists && has_layer {
-        println!("Table already exists for {}, skipping", mapping.identifier);
-    } else {
-        let vrt_path = vrt_tmp.join(&identifier).with_extension("vrt");
-        gdal::create_vrt(&vrt_path, &shapefiles, &mapping).await?;
-        gdal::load_to_postgres(&vrt_path, postgres_url).await?;
-    }
-
-    let metadata = metadata_conn.build_metadata_from_dataset(dataset).await?;
-    metadata_conn.create_dataset(&identifier, &metadata).await?;
     Ok(())
 }
 

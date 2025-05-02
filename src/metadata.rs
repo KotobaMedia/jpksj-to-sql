@@ -1,4 +1,4 @@
-use crate::scraper::Dataset;
+use crate::{loader::mapping::ShapefileMetadata, scraper::Dataset};
 use anyhow::{Context, Result};
 use km_to_sql::{
     metadata::{ColumnEnumDetails, ColumnForeignKeyDetails, ColumnMetadata, TableMetadata},
@@ -36,9 +36,12 @@ impl MetadataConnection {
         })
     }
 
-    pub async fn build_metadata_from_dataset(&self, dataset: &Dataset) -> Result<TableMetadata> {
-        let table_name = dataset.initial_item.identifier.to_lowercase();
-
+    pub async fn build_metadata_from_dataset(
+        &self,
+        table_name: &str,
+        metadata: &ShapefileMetadata,
+        dataset: &Dataset,
+    ) -> Result<TableMetadata> {
         let columns_in_db = self
             .client
             .query(
@@ -62,6 +65,8 @@ impl MetadataConnection {
             )
             .await
             .with_context(|| "when querying columns from PostgreSQL")?;
+
+        // println!("[table: {}] Columns in DB: {:?}", table_name, columns_in_db);
 
         let data_item = &dataset.initial_item;
         let data_page = &dataset.page;
@@ -128,7 +133,7 @@ impl MetadataConnection {
         }
 
         let table_metadata = TableMetadata {
-            name: data_item.name.clone(),
+            name: metadata.name.clone(),
             desc: data_page.metadata.fundamental.get("内容").cloned(),
             source: Some("国土数値情報".to_string()),
             source_url: Some(data_item.url.clone()),

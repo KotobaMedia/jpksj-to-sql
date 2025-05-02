@@ -521,6 +521,22 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_scrape_a38() {
+        let url =
+            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A38-2020.html").unwrap();
+        let page = scrape(&url).await.unwrap();
+        // 全国パターン
+        assert_eq!(page.items.len(), 1);
+
+        let a38a_001 = page.metadata.attribute.get("A38a_001").unwrap();
+        assert_eq!(a38a_001.name, "行政区域コード");
+        let a38b_001 = page.metadata.attribute.get("A38b_001").unwrap();
+        assert_eq!(a38b_001.name, "行政区域コード");
+        let a38c_001 = page.metadata.attribute.get("A38c_001").unwrap();
+        assert_eq!(a38c_001.name, "都道府県名");
+    }
+
+    #[tokio::test]
     async fn test_parse_ref_enum() {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/L01_v3_2_RoadEnumType.html")
