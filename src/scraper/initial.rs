@@ -120,7 +120,7 @@ mod tests {
     #[tokio::test]
     async fn test_scrape() {
         let result = scrape().await.unwrap();
-        assert_eq!(result.data.len(), 125);
+        assert_eq!(result.data.len(), 126);
         let first = result.data.get(0).unwrap();
         assert_eq!(first.name, "海岸線");
         assert_eq!(first.identifier, "C23");
