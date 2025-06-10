@@ -120,7 +120,8 @@ ogr2ogr -f FlatGeobuf a40_normalized.fgb PG:"$PG_CONN_STR" a40_normalized
 # 3次医療圏 (都府県＋北海道6圏)
 ogr2ogr -f FlatGeobuf a38_3.fgb PG:"$PG_CONN_STR" a38c
 # 2次医療圏 (3次より細かい、簡易的な集計データも付与)
-ogr2ogr -f FlatGeobuf a38_2.fgb PG:"$PG_CONN_STR" a38b
+scripts/ogr_groupby.sh ./a38_2.fgb "二次医療圏コード" a38b
+# ogr2ogr -f FlatGeobuf a38_2.fgb PG:"$PG_CONN_STR" a38b
 # 1次医療圏 (2次より更に細かい)
 ogr2ogr -f FlatGeobuf a38_1.fgb PG:"$PG_CONN_STR" a38a
 ```
