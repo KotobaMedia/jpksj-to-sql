@@ -52,7 +52,7 @@ impl Scraper {
                 }
             }
 
-            let page_res = data_page::scrape(&initial_item.url).await;
+            let page_res = data_page::DataPage::scrape(&initial_item.url).await;
             if let Err(err) = page_res {
                 println!("[ERROR, skipping...] {:?}", err);
                 continue;
