@@ -42,3 +42,6 @@ features = [
     # "zstd",
     # "xz",
 ]
+
+[dev-dependencies]
+mockito = "1"

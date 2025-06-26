@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta content="ja" http-equiv="content-language">
+	<meta content="width=device-width" name="viewport">
+	<meta content="telephone=no" name="format-detection">
+	<meta content="" name="description">
+	<meta content="" name="keyword">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="../../../ksj/css/materialize.css" media="screen,projection" rel="stylesheet" type="text/css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js">
+
+	</script>
+	<link href="../../../ksj/css/style.css" media="screen,projection" rel="stylesheet" type="text/css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="text/javascript">
+
+	</script>
+	<title>国土数値情報 | 災害危険区域データ</title>
+
+	<!-- Google Tag Manager -->
+	<script>(function (w, d, s, l, i) {
+			w[l] = w[l] || []; w[l].push({
+				'gtm.start':
+					new Date().getTime(), event: 'gtm.js'
+			}); var f = d.getElementsByTagName(s)[0],
+				j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+					'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+		})(window, document, 'script', 'dataLayer', 'GTM-KBHCLWJ');</script>
+	<!-- End Google Tag Manager -->
+
+		<link rel="stylesheet" href="../../../ksj/css/datatables.min.css">
+		<script src="../../../ksj/js/datatables.min.js"></script>
+		<script src="../../../ksj/js/jquery.ex-table-filter.js"></script>
+</head>
+
+
+
+<body>
+
+	<!-- Google Tag Manager (noscript) -->
+	<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KBHCLWJ" height="0" width="0"
+			style="display:none;visibility:hidden"></iframe></noscript>
+	<!-- End Google Tag Manager (noscript) -->
+
+	<!-- ヘッダー -->
+	
+  <header class="gmenu">
+
+
+    <nav class="nav-extended blue darken-3">
+      <div class="nav-wrapper">
+        <div>
+          <span class="gmenu__logo-M">
+            <img class="img__logo-M" src="/ksj/img/logo.png" alt="国土交通省">
+          </span>
+        </div>
+        <a class="gmenu__title" href="/">国土数値情報ダウンロードサイト</a>
+        <a data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
+
+        <ul id="nav-mobile" class="right hide-on-med-and-down gmenu__title-line">
+          <li><a class="nav_padding_10" href="/first.html">初めての方へ</a></li>
+          <li><a class="nav_padding_10" href="/ksj/case_studies.html">活用事例</a></li>
+          <li><a class="nav_padding_10" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">アンケート</a></li>
+          <li><a class="nav_padding_10" href="/ksj/other/other.html">その他</a></li>
+          <li><a class="waves-effect waves-light btn" "nav_padding_10" href="/ksj/inquiry.html">お問合せ</a></li>
+          <!-- 検索窓　
+          <li>
+            <form class="search-form" action="https://www.google.co.jp/cse" name="cse-search-box" target="_blank">
+              <input value="6768d71d594cb4140" name="cx" type="hidden">
+              <input value="UTF-8" name="ie" type="hidden">
+              <input class="search-input" size="16" name="q" type="text" placeholder="サイト内を検索">
+              <button class="search-btn blue darken-3" value="" name="sa"><i class="material-icons">search</i></button>
+            </form>
+          </li>-->
+          <div>
+            <span class="gmenu__logo">
+              <img class="img__logo" src="/ksj/img/logo.png" alt="国土交通省">
+            </span>
+          </div>
+        </ul>
+
+
+      </div>
+    </nav>
+
+
+    <ul class="sidenav collection with-header" id="mobile-demo"> 
+    <li><a href="/ksj/index.html">国土数値情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/kokjo/inspect/inspect.html">国土調査<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/webmapc/mapmain.html">地図で見る<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a class="collection-item" href="/first.html">初めての方へ</a></li>
+        <li><a class="collection-item" href="/ksj/case_studies.html">活用事例</a></li>
+        <li><a class="collection-item" href="/ksj/inquiry.html">お問合せ</a></li>
+        <li><a class="collection-item" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li>
+        <li><a class="collection-item" href="/ksj/other/other.html">その他</a></li>
+    </ul>
+
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+  </header>
+
+
+<header class="gmenu__contents-line">
+  <!-- mega size menu -->
+  <!--
+  <div>
+    <ul class="main-menu">       
+      <li class="menu__mega">
+        <a href="#con-1" class="init-bottom">国土数値情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土数値情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-2" class="init-bottom">位置参照情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">位置参照情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-3" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土調査</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-4" class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="#">ウェブマッピングシステムとは</a></li>
+            <li><a href="#">ウェブマッピングシステムを起動</a></li>
+            <li><a href="#">ヘルプ</a></li>
+          </ul>
+      </li>
+    </ul>
+  </div>
+  -->
+
+  <div class="main-menu__L">
+    <ul class="main-menu">
+      <li class="menu__single">
+        <a class="init-bottom">国土数値情報</a>
+        <ul class="menu__second-level">
+            <li><a href="/ksj/index.html">データダウンロード</a></li>  
+            <li><a href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>            
+            <li><a href="/ksj/ksj.html">国土数値情報とは</a></li>
+            <li><a href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+            <li><a href="/ksj_news.html">新着情報</a></li>
+            <li><a href="/ksj_error.html">修正情報</a></li>
+            <li><a href="/ksj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__single">
+        <a class="init-bottom">
+          位置参照情報
+          <a class="init-bottom__l2">ジオコーディング（住所⇔緯度経度）</a>
+        </a>
+          <ul class="menu__second-level">
+            <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">データダウンロード</a></li>  
+            <li><a href="/isj/index.html">位置参照情報とは</a></li>
+            <li><a href="/isj_news.html">新着情報</a></li>
+            <li><a href="/isj_error.html">修正情報</a></li>
+            <li><a href="/isj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+      
+      <!--
+      <li class="menu__single">
+        <a href="/kokjo_news.html" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>  
+            <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+            <li><a href="/kokjo_news.html">新着情報</a></li>
+          </ul>
+      </li>-->
+
+      
+      <li class="menu__multi">
+        <a class="init-bottom">国土調査
+        <a class="init-bottom__l2">土地分類調査・水調査</a>
+        </a>
+        <ul class="menu__second-level">
+          <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>
+          <li><a href="/kokjo/inspect/landclassification/download.html">GISデータのダウンロード</a></li>
+          <li>
+            <a class="init-right">国土調査とは</a>
+            <ul class="menu__third-level">
+                <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+                <li><a href="/kokjo/inspect/landclassification/index.html">土地分類調査・水調査の概要</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">土地分類調査</a>
+            <ul class="menu__third-level">
+            <li><a href="/kokjo/inspect/landclassification/land/l_national_map_5-1.html">5万分の1都道府県土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1.html">20万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_50-1.html">50万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_det.html">土地分類調査（細部調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/land_history_2011/index_tile.html">土地履歴調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1-hozen.html">20万分の1土地保全基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_d.html">災害類型別土地保全調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_v.html">土地分類基本調査（垂直調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/chikei_bunrui.html">地形分類図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/saigai_rireki.html">災害履歴図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/tochi_riyou.html">土地利用図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/hyousou_chisitsu.html">表層地質図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/dojyou.html">土壌図から選ぶ</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">水調査</a>
+            <ul class="menu__third-level">
+              <li><a href="/kokjo/inspect/inspect.html#suikei">表流水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map.html"> ○主要水系調査（更新調査：2003年～）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_p.html"> ○主要水系調査（1966年～2002年）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_pref.html">○都道府県水調査</a></li>
+              <li><a href="/kokjo/inspect/inspect.html#suikei">地下水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/f9_exp.html">○全国地下水資料台帳</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_ug.html">○地下水の見える化調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_cw.html">○地下水マップ</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+
+
+      <li class="menu__single">
+        <a class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+            <li><a href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+            <li><a href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+          </ul>
+      </li>
+
+
+
+    </ul>
+  </div>
+
+
+</header>
+<!-- モーダル本体 -->
+<div class="modal-container">
+  <div class="modal-body">
+    <!-- 閉じるボタン -->
+    <div class="close_btn_X">×</div>
+    <div class="modal-close btn waves-effect waves-light indigo btn-small">スキップする</div>
+    <!-- <div class="modal-close btn waves-effect waves-light indigo btn-small">ダウンロードへ進む</div> -->
+    
+    <!-- モーダル内のコンテンツ -->
+    <div class="modal-content">
+      <iframe src="https://docs.google.com/forms/d/1-J1_3_NPwYy8cpH7yfwRlKa5iYaN9zw6S4ng4e0PuEs/viewform?usp=sf_link" 
+        width="98%" 
+        height="600"
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0">
+      </iframe> 
+    </div>
+  </div>
+</div>	<main>
+		<div class="container">
+			<div class="breadcrumb-list">
+				<a class="breadcrumb" href="../../../index.html">TOP</a>
+				<a class="breadcrumb" href="../../index.html">国土数値情報</a>
+				<a class="breadcrumb" href="#!">災害危険区域データ</a>
+			</div>
+			<div class="col s12 center">
+				<p class="left-align light">データのダウンロード（2.各データ詳細）<br>
+					選択したデータ項目は、国土数値情報　災害危険区域データ　です。<br>
+					最新のデータはデータ基準年度 2021年度（令和3年度）版です。<br>
+					データ基準年度：2020年度（令和2年度）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-A48-2020.html"
+						target="_blank">こちら</a><br></p>
+			</div>
+			<!-- <div class="col s12 center"> 
+				<p class="left-align light">データのダウンロード（2.各データ詳細）<br>
+					選択したデータ項目は、国土数値情報　災害危険区域データ　です。<br>
+					最新のデータは製品仕様書第1.2版に基づいています。（データ基準年度:2021年度（令和3年度））<br>
+					製品仕様書第1.1版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-A48-v1_1.html"
+						target="_blank">こちら</a>（データ基準年度:2020年度（令和2年度））<br></p>
+			</div>-->
+			<ul class="collapsible">
+				<li class="active">
+					<div class="collapsible-header blue darken-4">
+						<p class="white-text">災害危険区域　2021年度（令和3年度）版<i class="material-icons">arrow_drop_down</i>
+						</p>
+					</div>
+					<div class="collapsible-body">
+						<table class="tablelist responsive-table">
+							<tbody>
+								<tr>
+									<th>更新履歴</th>
+									<td>2022年6月：2021年度（令和3年度）版に更新<br>
+										2021年6月：2020年度（令和2年度）版に更新</td>
+								</tr>
+								<!-- <tr> 
+									<th>更新履歴</th>
+									<td>第1.2版　2021年度（令和3年度）更新<br>
+										第1.1版　2020年度（令和2年度）更新</td>
+								</tr>-->
+								<tr>
+									<th>内容</th>
+									<td>地方公共団体（都道府県または市町村）では、津波、高潮、出水等による危険の著しい区域を災害危険区域として条例で指定している。本データは、地方公共団体より提供された災害危険区域の範囲または位置、種別、並びに名称等のデータを、製品仕様書に基づき、都道府県毎に整備したものである。
+									</td>
+								</tr>
+								<tr>
+									<th>データの基準となる年月日</th>
+									<td>2021年（令和3年）7月時点</td>
+								</tr>
+								<tr>
+									<th>関連する法律</th>
+									<td>建築基準法第 39 条</td>
+								</tr>
+								<tr>
+									<th>原典資料</th>
+									<td>各地方公共団体が指定する災害危険区域に関する資料</td>
+								</tr>
+								<tr>
+									<th>作成方法（原典表示）</th>
+									<td>国土地理院発行の２万５千分１地形図またはその電子成果を基図として、原典資料から災害危険区域を表す面・点データを作成、区域名・所在地・告示年月日等の属性情報を付与した（GML
+										形式及びシェープファイル形式等）。</td>
+								</tr>
+								<th><a href="/ksj/other/agreement_01.html" target="_blank">このデータの使用許諾条件</a>
+								<td>オープンデータ（CC_BY_4.0（一部制限））<br><br>
+									<b>【重要：データ利用時の注意事項】</b><br><br>
+									国土数値情報（災害危険区域データ）の利用にあたっては、<a href="/ksj/other/agreement_01.html"
+										target="_blank">国土数値情報ダウンロードサイトコンテンツ利用規約（政府標準利用規約準拠版）</a>のほか、各地方公共団体で定められた使用条件を必ず遵守してください。<br>
+									※<a href="/ksj/gml/codelist/R6_Terms_of_Use_DisasterRiskArea.xlsx"
+										target="_blank">各地方公共団体のデータ使用条件について</a><br>
+									※データを利用される方は必ず本ファイルをダウンロードし、内容についてご承諾ください。</td>
+								</tr>
+								<tr>
+									<th>座標系</th>
+									<td>JGD2011 / （B, L）</td>
+								</tr>
+								<tr>
+									<th>データ形状</th>
+									<td>面、点</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="row rowReset">
+							<div class="col s6 colReset">
+								<table class="responsive-table">
+									<tbody>
+										<tr>
+											<th>データ構造</th>
+										</tr>
+										<tr>
+											<td>
+												<a href="./img/A48-3.png" target="_blank" title="拡大表示">
+													<img alt="データ構造" class="responsive-img" src="./img/A48-3.png">
+												</a>
+												<br>《拡大表示するには図をクリックしてください》
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="col s6">
+								<table class="responsive-table">
+									<tbody>
+										<tr>
+											<th>イメージ</th>
+										</tr>
+										<tr>
+											<td>
+												<img alt="イメージ" class="responsive-img" src="./img/A48-2.jpg">
+												<br>
+												<span class="center">背景には地理院地図を利用しています</span>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<table class="tablelist responsive-table">
+							<tbody>
+								<tr>
+									<th rowspan="3">地物情報</th>
+									<th>地物名</th>
+									<th>説明</th>
+									<th>形状</th>
+								</tr>
+								<tr>
+									<td>災害危険区域（面）</td>
+									<td>災害危険区域の範囲</td>
+									<td>面型（GM_Surface）</td>
+								</tr>
+								<tr>
+									<td>災害危険区域（点）</td>
+									<td>災害危険区域の位置</td>
+									<td>点型（GM_Point）</td>
+								</tr>
+								<tr>
+									<th rowspan="15">属性情報</th>
+									<th>属性名<br>（かっこ内はshp属性名）</th>
+									<th>説明</th>
+									<th>属性の型</th>
+								</tr>
+								<tr>
+									<td>都道府県名<br>（A48_001）</td>
+									<td>災害危険区域が存在する地方公共団体の都道府県名</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>市町村名<br>（A48_002）</td>
+									<td>災害危険区域が存在する地方公共団体の市町村名</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>代表行政コード<br>（A48_003）</td>
+									<td>災害危険区域が存在する地方公共団体の行政コード</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/AdminiBoundary_CD.xlsx"
+											target="_blank">行政区域コード</a>」</td>
+								</tr>
+								<tr>
+									<td>指定主体区分<br>（A48_004）</td>
+									<td>災害危険区域を指定した地方公共団体の区分を示すコード</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/CodeOfManagementOrganizationClassType.html"
+											target="_blank">指定主体コード</a>」</td>
+								</tr>
+								<tr>
+									<td>区域名<br>（A48_005）</td>
+									<td>災害危険区域の箇所名等その区域の名称</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>所在地<br>（A48_006）</td>
+									<td>災害危険区域の所在地</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>指定理由コード<br>（A48_007）</td>
+									<td>災害危険区域を指定した理由を示すコード</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/reasonForDesignationCode.html"
+											target="_blank">指定理由コード</a>」</td>
+								</tr>
+								<tr>
+									<td>指定理由詳細<br>（A48_008）</td>
+									<td>災害危険区域を指定した理由</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>告示年月日<br>（A48_009）</td>
+									<td>災害危険区域を告示した年月日</td>
+									<td>日付型（TM_Period）</td>
+								</tr>
+								<tr>
+									<td>告示番号<br>（A48_010）</td>
+									<td>災害危険区域の告示番号</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>根拠条例<br>（A48_011）</td>
+									<td>災害危険区域を指定した根拠となる条例の名称</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>面積<br>（A48_012）</td>
+									<td>災害危険区域の面積（単位：ha）</td>
+									<td>数値型（Decimal）</td>
+								</tr>
+								<tr>
+									<td>縮尺<br>（A48_013）</td>
+									<td>参照資料の縮尺</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>その他<br>（A48_014）</td>
+									<td>地方公共団体が指定する区域の区分や災害危険基準高等</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<th>主な品質情報</th>
+									<td colspan="3">
+										■完全性/過剰・漏れ：誤率 0%<br>
+										原典資料との照合による検査<br>
+										■論理一貫性/書式一貫性・概念一貫性・定義域一貫性：誤率 0%<br>
+										XML スキーマに対する妥当性を検証<br>
+										■主題正確度/非定量的属性の正しさ：誤率 0%原典資料との照合による検査<br>
+										■位置正確度/絶対正確度：図上 0.3mm 以内<br>
+										作成データ（地物）と原典資料を重ねて表示し位置のズレの最大値を測定</td>
+								</tr>
+								<tr>
+									<th>データフォーマット（符号化）</th>
+									<td colspan="3">・JPGISに準拠した符号化（GML形式）。詳細は<a
+											href="/ksj/gml/product_spec/KS-PS-A48-v1_2.pdf"
+											target="_blank">製品仕様書</a>内の符号化規則を参照してください。<br>
+										シェープファイル形式。<a href="/ksj/gml/codelist/shape_property_table2.xlsx"
+											target="_blank">シェープファイルの属性について</a>
+									</td>
+								</tr>
+								<tr>
+									<th>国土情報ウェブマッピングシステムへの登録</th>
+									<td colspan="3">
+										<a href="https://nlftp.mlit.go.jp/webmapc/mapmain.html"
+											target="_blank">登録あり</a>：
+										<a href="/ksj/gml/datalist/KsjTmplt-A48-2020.html"
+											target="_blank">2020年度（令和2年度）版</a>のデータです。
+									</td>
+								</tr>
+								<tr>
+									<th>地図上でデータ閲覧できるサイト</th>
+									<td colspan="4">
+										<a href="https://www.reinfolib.mlit.go.jp/" target="_blank">不動産情報ライブラリ（国土交通省）</a>（データ年度はサイト中の出典情報をご確認ください。）
+									</td>
+								</tr>
+								<tr>
+									<th>識別子</th>
+									<td colspan="3">A48</td>
+								</tr>
+								<tr>
+									<th>その他の情報</th>
+									<td colspan="3">
+										<p class="red-text text-accent-4;">
+											・本データの使用条件は地方公共団体ごとに異なっており、データのダウンロードサイトにそれぞれ記載していますので、必ず確認してください。<br>
+											・本データは地方公共団体より提供された資料をもとに作成されており、原典に起因するデータの欠損やエラー等を含む場合があります。<br>
+											・指定区域は順次見直しが行われており、最新の指定状況が反映されていない場合があります。<br>
+											・指定区域の地番や形状が、現況と異なる場合があります。また、本データは指定区域のおおよその位置を示すものであり、空間的な誤差等を含みます。区域の詳細については、各地方公共団体が公表する区域図等を参照してください。<br>
+											・ダウンロードデータ内の「254バイト超過リスト.xlsx」は、災害危険区域を示す区域所在地がデータ規定の254バイトを超過するものに対し、区域所在地の全ての情報を収めたリストです。<br>
+											・ダウンロードデータ内の「災害危険区域不明リスト【図形】.xlsx」は、形状のデータはないが区域の属性にあたる情報のみ取得している区域に対し、災害危険区域を示す全ての情報を収めたリストです。<br>
+											・急傾斜地崩壊危険区域と同一の範囲、または急傾斜地崩壊危険区域から土砂災害特別警戒区域を除いた範囲が、災害危険区域として指定されている場合があります。<br>
+											・土砂災害特別警戒区域等の災害ハザードエリアを併せて表示することを推奨します。<br>
+											・データ作成に伴い、微小な図形が生成されることがあります。<br>
+											・本データの利用により生じた損失・損害については、利用者がその全ての責任を負うものとし、国土交通省及び原典資料の提供者である地方公共団体は一切の責任を負いません。<br>
+										</p>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</li>
+			</ul>
+			<!-- DW日本地図 -->
+			<ul class="collapsible" id="Jmap">
+				<li class="active">
+					<div class="collapsible-header blue darken-4">
+						<p class="white-text">ダウンロードするデータの選択（ダウンロードしたい県をクリックしてください）<i
+								class="material-icons">arrow_drop_down</i>
+						</p>
+					</div>
+					<div class="collapsible-body">
+						<table class="mapjpn1 mb15 responsive-table">
+							<tbody>
+								<!--
+								<tr>
+									<th class="bgc0">全国</th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="全国" value="全国"
+												name="pref" /><span class="black-text">全国</span></label></td>
+								</tr>-->
+								<tr>
+									<th class="bgc1">北海道</th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="北海道" value="北海道"
+												name="pref" /><span class="black-text">北海道</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc2"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="東北" value="東北地方"
+												name="pref" /><span class="black-text">東北</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="青森県" value="青森"
+												name="pref" /><span class="black-text">青森県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="岩手県" value="岩手"
+												name="pref" /><span class="black-text">岩手県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="宮城県" value="宮城"
+												name="pref" /><span class="black-text">宮城県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="秋田県" value="秋田"
+												name="pref" /><span class="black-text">秋田県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="山形県" value="山形"
+												name="pref" /><span class="black-text">山形県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="福島県" value="福島"
+												name="pref" /><span class="black-text">福島県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc3"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="関東" value="関東地方"
+												name="pref" /><span class="black-text">関東</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="茨城県" value="茨城"
+												name="pref" /><span class="black-text">茨城県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="栃木県" value="栃木"
+												name="pref" /><span class="black-text">栃木県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="群馬県" value="群馬"
+												name="pref" /><span class="black-text">群馬県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="埼玉県" value="埼玉" disabled="disabled"
+												name="pref" /><span class="black-text">埼玉県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="千葉県" value="千葉"
+												name="pref" /><span class="black-text">千葉県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="東京都" value="東京"
+												name="pref" /><span class="black-text">東京都</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="神奈川県" value="神奈川"
+												name="pref" /><span class="black-text">神奈川県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc4"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="甲信越・北陸" value="甲信越・北陸地方"
+												name="pref" /><span class="black-text">甲信越・北陸</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="新潟県" value="新潟"
+												name="pref" /><span class="black-text">新潟県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="富山県" value="富山"
+												name="pref" /><span class="black-text">富山県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="石川県" value="石川"
+												name="pref" /><span class="black-text">石川県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="福井県" value="福井"
+												name="pref" /><span class="black-text">福井県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="山梨県" value="山梨" disabled="disabled"
+												name="pref" /><span class="black-text">山梨県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="長野県" value="長野"
+												name="pref" /><span class="black-text">長野県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc5"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="東海" value="東海地方"
+												name="pref" /><span class="black-text">東海</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="岐阜県" value="岐阜"
+												name="pref" /><span class="black-text">岐阜県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="静岡県" value="静岡"
+												name="pref" /><span class="black-text">静岡県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="愛知県" value="愛知"
+												name="pref" /><span class="black-text">愛知県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="三重県" value="三重" disabled="disabled"
+												name="pref" /><span class="black-text">三重県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc6"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="近畿" value="近畿地方"
+												name="pref" /><span class="black-text">近畿</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="滋賀県" value="滋賀"
+												name="pref" /><span class="black-text">滋賀県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="京都府" value="京都"
+												name="pref" /><span class="black-text">京都府</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="大阪府" value="大阪"
+												name="pref" /><span class="black-text">大阪府</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="兵庫県" value="兵庫"
+												name="pref" /><span class="black-text">兵庫県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="奈良県" value="奈良" disabled="disabled"
+												name="pref" /><span class="black-text">奈良県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="和歌山県" value="和歌山"
+												name="pref" /><span class="black-text">和歌山県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc7"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="中国" value="中国地方"
+												name="pref" /><span class="black-text">中国</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="鳥取県" value="鳥取"
+												name="pref" /><span class="black-text">鳥取県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="島根県" value="島根"
+												name="pref" /><span class="black-text">島根県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="岡山県" value="岡山" disabled="disabled"
+												name="pref" /><span class="black-text">岡山県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="広島県" value="広島"
+												name="pref" /><span class="black-text">広島県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="山口県" value="山口" disabled="disabled"
+												name="pref" /><span class="black-text">山口県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc8"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="四国" value="四国地方"
+												name="pref" /><span class="black-text">四国</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="徳島県" value="徳島"
+												name="pref" /><span class="black-text">徳島県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="香川県" value="香川" disabled="disabled"
+												name="pref" /><span class="black-text">香川県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="愛媛県" value="愛媛"
+												name="pref" /><span class="black-text">愛媛県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="高知県" value="高知" disabled="disabled"
+												name="pref" /><span class="black-text">高知県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc9"><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="九州" value="九州地方"
+												name="pref" /><span class="black-text">九州</span></label></th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="福岡県" value="福岡" disabled="disabled"
+												name="pref" /><span class="black-text">福岡県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="佐賀県" value="佐賀"
+												name="pref" /><span class="black-text">佐賀県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="長崎県" value="長崎"
+												name="pref" /><span class="black-text">長崎県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="熊本県" value="熊本"
+												name="pref" /><span class="black-text">熊本県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="大分県" value="大分" disabled="disabled"
+												name="pref" /><span class="black-text">大分県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="宮崎県" value="宮崎"
+												name="pref" /><span class="black-text">宮崎県</span></label></td>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="鹿児島県" value="鹿児島"
+												name="pref" /><span class="black-text">鹿児島県</span></label></td>
+								</tr>
+								<tr>
+									<th class="bgc10">沖縄</th>
+									<td><label><input type="checkbox" class="pref_chk filled-in ex-tf_p" id="沖縄県" value="沖縄"
+												name="pref" /><span class="black-text">沖縄県</span></label></td>
+								</tr>
+							</tbody>
+						</table>
+						<table class="mb15 responsive-table ex-tf_container">
+							<tbody>
+								<th class="card-content blue lighten-1 ex-tf_th">年度で絞り込み</th>
+								<td class="ex-tf_td">
+									<div class="ex-tf_y input-field"></div>
+								</td>
+							</tbody>
+						</table>
+					</div>
+				</li>
+			</ul>
+			<!-- //DW日本地図 -->
+			<!-- DW都道府県 -->
+			<div class="card blue mt15">
+				<div class="card-content blue lighten-1">
+					<p class="white-text">国土数値情報ダウンロードサービス　（JPGIS2.1（GML）準拠及びSHAPE形式データ）　データのダウンロード</p>
+				</div>
+			</div>
+			<div class="card mt15">
+				<div class="card-content">
+					<p>選択したデータ項目は、国土数値情報　災害危険区域データ　です。</p>
+				</div>
+			</div>
+			<table class="mb30 responsive-table dataTables">
+				<thead>
+					<tr>
+						<th class="txtCenter">地域</th>
+						<th class="txtCenter">測地系</th>
+						<th class="txtCenter">年度</th>
+						<th class="txtCenter">ファイル容量</th>
+						<th class="txtCenter">ファイル名</th>
+						<th class="txtCenter">ダウンロード</th>
+						<th class="txtCenter  style="width:fit-content"">一括DL
+							<a class="Select_part tooltipped" style="cursor:pointer;position:relative" data-position="top" data-tooltip="全てのデータを選択">
+								<label class="chkLabel-front">
+									<input type="checkbox"  class="filled-in select center-align" disabled="disabled" checked="checked">
+									<span></span>
+								</label>
+								<label class="chkLabel-front chkLabel-back">
+									<input type="checkbox"  class="filled-in blank center-align" disabled="disabled" checked="checked">
+									<span></span>
+								</label>
+							</a>
+							<a class="Clear_part tooltipped" style="cursor:pointer;position:relative;margin-left: 8px;"  data-position="top" data-tooltip="全ての選択を解除">
+								<label class="chkLabel-front">
+									<input type="checkbox"  class="filled-in blank center-align" disabled="disabled">
+									<span></span>
+								</label>
+								<label class="chkLabel-fornt chkLabel-back">
+									<input type="checkbox" class="filled-in blank-back center-align" disabled="disabled">
+									<span></span>
+								</label>
+							</a>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="bgc1" id="prefecture01">北海道</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">58KB</td>
+						<td class="txtCenter">A48-20_01_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('58KB','A48-20_01_GML.zip','../data/A48/A48-20/A48-20_01_GML.zip' ,this);">
+								<span id="A48-20_01_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_01_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc1" id="prefecture01">北海道</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">85KB</td>
+						<td class="txtCenter">A48-21_01_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('85KB','A48-21_01_GML.zip','../data/A48/A48-21/A48-21_01_GML.zip' ,this);">
+								<span id="A48-21_01_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_01_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc2" id="prefecture52">東北地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">5,716KB</td>
+						<td class="txtCenter">A48-21_52_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('15,716KB','A48-21_52_GML.zip','../data/A48/A48-21/A48-21_52_GML.zip' ,this);">
+								<span id="A48-21_52_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_52_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture02">青森</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">68KB</td>
+						<td class="txtCenter">A48-20_02_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('68KB','A48-20_02_GML.zip','../data/A48/A48-20/A48-20_02_GML.zip' ,this);">
+								<span id="A48-20_02_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_02_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture02">青森</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">320KB</td>
+						<td class="txtCenter">A48-21_02_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('320KB','A48-21_02_GML.zip','../data/A48/A48-21/A48-21_02_GML.zip' ,this);">
+								<span id="A48-21_02_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_02_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture03">岩手</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">1,709KB</td>
+						<td class="txtCenter">A48-20_03_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,709KB','A48-20_03_GML.zip','../data/A48/A48-20/A48-20_03_GML.zip' ,this);">
+								<span id="A48-20_03_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_03_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture03">岩手</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">2,553KB</td>
+						<td class="txtCenter">A48-21_03_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,709KB','A48-21_03_GML.zip','../data/A48/A48-21/A48-21_03_GML.zip' ,this);">
+								<span id="A48-21_03_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_03_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture04">宮城</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">1,506KB</td>
+						<td class="txtCenter">A48-20_04_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,506KB','A48-20_04_GML.zip','../data/A48/A48-20/A48-20_04_GML.zip' ,this);">
+								<span id="A48-20_04_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_04_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture04">宮城</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">2,592KB</td>
+						<td class="txtCenter">A48-21_04_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2,592KB','A48-21_04_GML.zip','../data/A48/A48-21/A48-21_04_GML.zip' ,this);">
+								<span id="A48-21_04_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_04_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture05">秋田</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">16KB</td>
+						<td class="txtCenter">A48-20_05_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('16KB','A48-20_05_GML.zip','../data/A48/A48-20/A48-20_05_GML.zip' ,this);">
+								<span id="A48-20_05_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_05_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture05">秋田</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">79KB</td>
+						<td class="txtCenter">A48-21_05_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('79KB','A48-21_05_GML.zip','../data/A48/A48-21/A48-21_05_GML.zip' ,this);">
+								<span id="A48-21_05_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_05_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture06">山形</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">39KB</td>
+						<td class="txtCenter">A48-21_06_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('39KB','A48-21_06_GML.zip','../data/A48/A48-21/A48-21_06_GML.zip' ,this);">
+								<span id="A48-21_06_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_06_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture07">福島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">123KB</td>
+						<td class="txtCenter">A48-20_07_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('123KB','A48-20_07_GML.zip','../data/A48/A48-20/A48-20_07_GML.zip' ,this);">
+								<span id="A48-20_07_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_07_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc2" id="prefecture07">福島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">212KB</td>
+						<td class="txtCenter">A48-21_07_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('212KB','A48-21_07_GML.zip','../data/A48/A48-21/A48-21_07_GML.zip' ,this);">
+								<span id="A48-21_07_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_07_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc3" id="prefecture53">関東地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">3,661KB</td>
+						<td class="txtCenter">A48-21_53_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('3,661KB','A48-21_53_GML.zip','../data/A48/A48-21/A48-21_53_GML.zip' ,this);">
+								<span id="A48-21_53_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_53_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture08">茨城</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">453KB</td>
+						<td class="txtCenter">A48-20_08_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('453KB','A48-20_08_GML.zip','../data/A48/A48-20/A48-20_08_GML.zip' ,this);">
+								<span id="A48-20_08_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_08_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture08">茨城</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">450KB</td>
+						<td class="txtCenter">A48-21_08_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('450KB','A48-21_08_GML.zip','../data/A48/A48-21/A48-21_08_GML.zip' ,this);">
+								<span id="A48-21_08_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_08_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture09">栃木</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">130KB</td>
+						<td class="txtCenter">A48-21_09_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('130KB','A48-21_09_GML.zip','../data/A48/A48-21/A48-21_09_GML.zip' ,this);">
+								<span id="A48-21_09_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_09_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture10">群馬</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">365KB</td>
+						<td class="txtCenter">A48-20_10_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('365KB','A48-20_10_GML.zip','../data/A48/A48-20/A48-20_10_GML.zip' ,this);">
+								<span id="A48-20_10_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_10_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture10">群馬</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">353KB</td>
+						<td class="txtCenter">A48-21_10_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('353KB','A48-21_10_GML.zip','../data/A48/A48-21/A48-21_10_GML.zip' ,this);">
+								<span id="A48-21_10_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_10_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture12">千葉</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">352KB</td>
+						<td class="txtCenter">A48-20_12_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('352KB','A48-20_12_GML.zip','../data/A48/A48-20/A48-20_12_GML.zip' ,this);">
+								<span id="A48-20_12_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_12_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture12">千葉</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">367KB</td>
+						<td class="txtCenter">A48-21_12_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('367KB','A48-21_12_GML.zip','../data/A48/A48-21/A48-21_12_GML.zip' ,this);">
+								<span id="A48-21_12_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_12_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture13">東京</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">16KB</td>
+						<td class="txtCenter">A48-20_13_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('16KB','A48-20_13_GML.zip','../data/A48/A48-20/A48-20_13_GML.zip' ,this);">
+								<span id="A48-20_13_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_13_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture13">東京</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">16KB</td>
+						<td class="txtCenter">A48-21_13_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('16KB','A48-21_13_GML.zip','../data/A48/A48-21/A48-21_13_GML.zip' ,this);">
+								<span id="A48-21_13_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_13_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture14">神奈川</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">1,777KB</td>
+						<td class="txtCenter">A48-20_14_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,777KB','A48-20_14_GML.zip','../data/A48/A48-20/A48-20_14_GML.zip' ,this);">
+								<span id="A48-20_14_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_14_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc3" id="prefecture14">神奈川</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">2,383KB</td>
+						<td class="txtCenter">A48-21_14_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2,383KB','A48-21_14_GML.zip','../data/A48/A48-21/A48-21_14_GML.zip' ,this);">
+								<span id="A48-21_14_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_14_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc4" id="prefecture54">甲信越・北陸地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">1,879KB</td>
+						<td class="txtCenter">A48-21_54_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,879KB','A48-21_54_GML.zip','../data/A48/A48-21/A48-21_54_GML.zip' ,this);">
+								<span id="A48-21_54_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_54_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture15">新潟</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">347KB</td>
+						<td class="txtCenter">A48-20_15_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('347KB','A48-20_15_GML.zip','../data/A48/A48-20/A48-20_15_GML.zip' ,this);">
+								<span id="A48-20_15_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_15_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture15">新潟</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">356KB</td>
+						<td class="txtCenter">A48-21_15_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('356KB','A48-21_15_GML.zip','../data/A48/A48-21/A48-21_15_GML.zip' ,this);">
+								<span id="A48-21_15_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_15_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture16">富山</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">280KB</td>
+						<td class="txtCenter">A48-20_16_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('280KB','A48-20_16_GML.zip','../data/A48/A48-20/A48-20_16_GML.zip' ,this);">
+								<span id="A48-20_16_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_16_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture16">富山</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">959KB</td>
+						<td class="txtCenter">A48-21_16_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('959KB','A48-21_16_GML.zip','../data/A48/A48-21/A48-21_16_GML.zip' ,this);">
+								<span id="A48-21_16_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_16_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture18">石川</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">17KB</td>
+						<td class="txtCenter">A48-20_17_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('17KB','A48-20_17_GML.zip','../data/A48/A48-20/A48-20_17_GML.zip' ,this);">
+								<span id="A48-20_17_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_17_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture17">石川</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">131KB</td>
+						<td class="txtCenter">A48-21_17_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('131KB','A48-21_17_GML.zip','../data/A48/A48-21/A48-21_17_GML.zip' ,this);">
+								<span id="A48-21_17_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_17_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture18">福井</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">418KB</td>
+						<td class="txtCenter">A48-21_18_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('418KB','A48-21_18_GML.zip','../data/A48/A48-21/A48-21_18_GML.zip' ,this);">
+								<span id="A48-21_18_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_18_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture20">長野</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">17KB</td>
+						<td class="txtCenter">A48-20_20_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('17KB','A48-20_20_GML.zip','../data/A48/A48-20/A48-20_20_GML.zip' ,this);">
+								<span id="A48-20_20_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_20_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc4" id="prefecture20">長野</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">36KB</td>
+						<td class="txtCenter">A48-21_20_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('36KB','A48-21_20_GML.zip','../data/A48/A48-21/A48-21_20_GML.zip' ,this);">
+								<span id="A48-21_20_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_20_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc5" id="prefecture55">東海地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">1,001KB</td>
+						<td class="txtCenter">A48-21_55_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,001KB','A48-21_55_GML.zip','../data/A48/A48-21/A48-21_55_GML.zip' ,this);">
+								<span id="A48-21_55_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_55_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc5" id="prefecture21">岐阜</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">53KB</td>
+						<td class="txtCenter">A48-20_21_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('53KB','A48-20_21_GML.zip','../data/A48/A48-20/A48-20_21_GML.zip' ,this);">
+								<span id="A48-20_21_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_21_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc5" id="prefecture21">岐阜</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">81KB</td>
+						<td class="txtCenter">A48-21_21_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('81KB','A48-21_21_GML.zip','../data/A48/A48-21/A48-21_21_GML.zip' ,this);">
+								<span id="A48-21_21_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_21_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc5" id="prefecture22">静岡</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">813KB</td>
+						<td class="txtCenter">A48-20_22_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('813KB','A48-20_22_GML.zip','../data/A48/A48-20/A48-20_22_GML.zip' ,this);">
+								<span id="A48-20_22_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_22_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc5" id="prefecture22">静岡</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">799KB</td>
+						<td class="txtCenter">A48-21_22_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('799KB','A48-21_22_GML.zip','../data/A48/A48-21/A48-21_22_GML.zip' ,this);">
+								<span id="A48-21_22_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_22_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc5" id="prefecture23">愛知</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">149KB</td>
+						<td class="txtCenter">A48-20_23_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('149KB','A48-20_23_GML.zip','../data/A48/A48-20/A48-20_23_GML.zip' ,this);">
+								<span id="A48-20_23_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_23_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc5" id="prefecture23">愛知</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">145KB</td>
+						<td class="txtCenter">A48-21_23_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('145KB','A48-21_23_GML.zip','../data/A48/A48-21/A48-21_23_GML.zip' ,this);">
+								<span id="A48-21_23_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_23_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc6" id="prefecture56">近畿地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">1,528KB</td>
+						<td class="txtCenter">A48-21_56_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,528KB','A48-21_56_GML.zip','../data/A48/A48-21/A48-21_56_GML.zip' ,this);">
+								<span id="A48-21_56_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_56_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture25">滋賀</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">48KB</td>
+						<td class="txtCenter">A48-20_25_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('48KB','A48-20_25_GML.zip','../data/A48/A48-20/A48-20_25_GML.zip' ,this);">
+								<span id="A48-20_25_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_25_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture25">滋賀</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">67KB</td>
+						<td class="txtCenter">A48-21_25_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('67KB','A48-21_25_GML.zip','../data/A48/A48-21/A48-21_25_GML.zip' ,this);">
+								<span id="A48-21_25_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_25_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture26">京都</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">1,189KB</td>
+						<td class="txtCenter">A48-20_26_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,189KB','A48-20_26_GML.zip','../data/A48/A48-20/A48-20_26_GML.zip' ,this);">
+								<span id="A48-20_26_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_26_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture26">京都</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">1,169KB</td>
+						<td class="txtCenter">A48-21_26_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,169KB','A48-21_26_GML.zip','../data/A48/A48-21/A48-21_26_GML.zip' ,this);">
+								<span id="A48-21_26_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_26_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture27">大阪</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">116KB</td>
+						<td class="txtCenter">A48-20_27_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('116KB','A48-20_27_GML.zip','../data/A48/A48-20/A48-20_27_GML.zip' ,this);">
+								<span id="A48-20_27_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_27_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture27">大阪</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">105KB</td>
+						<td class="txtCenter">A48-21_27_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('105KB','A48-21_27_GML.zip','../data/A48/A48-21/A48-21_27_GML.zip' ,this);">
+								<span id="A48-21_27_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_27_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture28">兵庫</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">170KB</td>
+						<td class="txtCenter">A48-20_28_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('170KB','A48-20_28_GML.zip','../data/A48/A48-20/A48-20_28_GML.zip' ,this);">
+								<span id="A48-20_28_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_28_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture28">兵庫</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">176KB</td>
+						<td class="txtCenter">A48-21_28_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('176KB','A48-21_28_GML.zip','../data/A48/A48-21/A48-21_28_GML.zip' ,this);">
+								<span id="A48-21_28_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_28_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture30">和歌山</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">17KB</td>
+						<td class="txtCenter">A48-20_30_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('17KB','A48-20_30_GML.zip','../data/A48/A48-20/A48-20_30_GML.zip' ,this);">
+								<span id="A48-20_30_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_30_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc6" id="prefecture30">和歌山</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">30KB</td>
+						<td class="txtCenter">A48-21_30_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('30KB','A48-21_30_GML.zip','../data/A48/A48-21/A48-21_30_GML.zip' ,this);">
+								<span id="A48-21_30_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_30_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc7" id="prefecture57">中国地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">633KB</td>
+						<td class="txtCenter">A48-21_57_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('633KB','A48-21_57_GML.zip','../data/A48/A48-21/A48-21_57_GML.zip' ,this);">
+								<span id="A48-21_57_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_57_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc7" id="prefecture31">鳥取</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">351KB</td>
+						<td class="txtCenter">A48-20_31_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('351KB','A48-20_31_GML.zip','../data/A48/A48-20/A48-20_31_GML.zip' ,this);">
+								<span id="A48-20_31_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_31_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc7" id="prefecture31">鳥取</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">339KB</td>
+						<td class="txtCenter">A48-21_31_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('339KB','A48-21_31_GML.zip','../data/A48/A48-21/A48-21_31_GML.zip' ,this);">
+								<span id="A48-21_31_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_31_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc7" id="prefecture32">島根</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">33KB</td>
+						<td class="txtCenter">A48-20_32_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('33KB','A48-20_32_GML.zip','../data/A48/A48-20/A48-20_32_GML.zip' ,this);">
+								<span id="A48-20_32_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_32_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc7" id="prefecture32">島根</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">41KB</td>
+						<td class="txtCenter">A48-21_32_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('41KB','A48-21_32_GML.zip','../data/A48/A48-21/A48-21_32_GML.zip' ,this);">
+								<span id="A48-21_32_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_32_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc7" id="prefecture34">広島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">13KB</td>
+						<td class="txtCenter">A48-20_34_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('13KB','A48-20_34_GML.zip','../data/A48/A48-20/A48-20_34_GML.zip' ,this);">
+								<span id="A48-20_34_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_34_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc7" id="prefecture34">広島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">296KB</td>
+						<td class="txtCenter">A48-21_34_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('296KB','A48-21_34_GML.zip','../data/A48/A48-21/A48-21_34_GML.zip' ,this);">
+								<span id="A48-21_34_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_34_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc8" id="prefecture58">四国地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">2,020KB</td>
+						<td class="txtCenter">A48-21_58_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2,020KB','A48-21_58_GML.zip','../data/A48/A48-21/A48-21_58_GML.zip' ,this);">
+								<span id="A48-21_58_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_58_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					<tr>
+						<td class="bgc8" id="prefecture36">徳島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">1,054KB</td>
+						<td class="txtCenter">A48-20_36_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,054KB','A48-20_36_GML.zip','../data/A48/A48-20/A48-20_36_GML.zip' ,this);">
+								<span id="A48-20_36_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_36_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc8" id="prefecture36">徳島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">1,064KB</td>
+						<td class="txtCenter">A48-21_36_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,064KB','A48-21_36_GML.zip','../data/A48/A48-21/A48-21_36_GML.zip' ,this);">
+								<span id="A48-21_36_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_36_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc8" id="prefecture38">愛媛</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">256KB</td>
+						<td class="txtCenter">A48-20_38_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('256KB','A48-20_38_GML.zip','../data/A48/A48-20/A48-20_38_GML.zip' ,this);">
+								<span id="A48-20_38_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_38_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc8" id="prefecture38">愛媛</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">982KB</td>
+						<td class="txtCenter">A48-21_38_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('982KB','A48-21_38_GML.zip','../data/A48/A48-21/A48-21_38_GML.zip' ,this);">
+								<span id="A48-21_38_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_38_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="bgc9" id="prefecture59">九州地方</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">3,148KB</td>
+						<td class="txtCenter">A48-21_59_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('3,148KB','A48-21_59_GML.zip','../data/A48/A48-21/A48-21_59_GML.zip' ,this);">
+								<span id="A48-21_59_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_59_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture41">佐賀</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">259KB</td>
+						<td class="txtCenter">A48-20_41_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('259KB','A48-20_41_GML.zip','../data/A48/A48-20/A48-20_41_GML.zip' ,this);">
+								<span id="A48-20_41_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_41_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture41">佐賀</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">259KB</td>
+						<td class="txtCenter">A48-21_41_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('259KB','A48-21_41_GML.zip','../data/A48/A48-21/A48-21_41_GML.zip' ,this);">
+								<span id="A48-21_41_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_41_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture42">長崎</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">1,092KB</td>
+						<td class="txtCenter">A48-20_42_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,092KB','A48-20_42_GML.zip','../data/A48/A48-20/A48-20_42_GML.zip' ,this);">
+								<span id="A48-20_42_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_42_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture42">長崎</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">1,072KB</td>
+						<td class="txtCenter">A48-21_42_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('1,072KB','A48-21_42_GML.zip','../data/A48/A48-21/A48-21_42_GML.zip' ,this);">
+								<span id="A48-21_42_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_42_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture43">熊本</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">703KB</td>
+						<td class="txtCenter">A48-20_43_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('703KB','A48-20_43_GML.zip','../data/A48/A48-20/A48-20_43_GML.zip' ,this);">
+								<span id="A48-20_43_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_43_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture43">熊本</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">749KB</td>
+						<td class="txtCenter">A48-21_43_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('749KB','A48-21_43_GML.zip','../data/A48/A48-21/A48-21_43_GML.zip' ,this);">
+								<span id="A48-21_43_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_43_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture45">宮崎</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">455KB</td>
+						<td class="txtCenter">A48-20_45_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('455KB','A48-20_45_GML.zip','../data/A48/A48-20/A48-20_45_GML.zip' ,this);">
+								<span id="A48-20_45_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_45_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture45">宮崎</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">417KB</td>
+						<td class="txtCenter">A48-21_45_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('417KB','A48-21_45_GML.zip','../data/A48/A48-21/A48-21_45_GML.zip' ,this);">
+								<span id="A48-21_45_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_45_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture46">鹿児島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">611KB</td>
+						<td class="txtCenter">A48-20_46_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('611KB','A48-20_46_GML.zip','../data/A48/A48-20/A48-20_46_GML.zip' ,this);">
+								<span id="A48-20_46_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_46_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc9" id="prefecture46">鹿児島</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">685KB</td>
+						<td class="txtCenter">A48-21_46_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('685KB','A48-21_46_GML.zip','../data/A48/A48-21/A48-21_46_GML.zip' ,this);">
+								<span id="A48-21_46_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_46_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc10" id="prefecture47">沖縄</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">54KB</td>
+						<td class="txtCenter">A48-20_47_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('54KB','A48-20_47_GML.zip','../data/A48/A48-20/A48-20_47_GML.zip' ,this);">
+								<span id="A48-20_47_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-20_47_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="bgc10" id="prefecture47">沖縄</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">54KB</td>
+						<td class="txtCenter">A48-21_47_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('54KB','A48-21_47_GML.zip','../data/A48/A48-21/A48-21_47_GML.zip' ,this);">
+								<span id="A48-21_47_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="A48-21_47_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<!-- //DW都道府県 -->
+		</div>
+	</main>
+
+	<div class="DL-baloon">
+		チェックを入れて<br>一括ダウンロード
+			<br><a class="DLBln-close" style="text-decoration:underline;color:dimgrey;cursor:pointer">閉じる</a>
+	</div>
+
+	<p id="List_DL">
+		<a class="tooltipped ListDlBtn" data-position="left" data-tooltip="一括ダウンロード" style="cursor:pointer">
+			<i class="Medium material-icons DL_icon">file_download</i>
+		</a>
+	</p>
+
+	<p id="JmapTop">
+		<a class="tooltipped" data-position="left" data-tooltip="地区選択" href="#Jmap">
+			<i class="Medium material-icons">vertical_align_center</i>
+		</a>
+	</p>
+	<p id="pageTop">
+		<a class="tooltipped" data-position="left" data-tooltip="ページトップ" href="#">
+			<i class="Medium material-icons">vertical_align_top</i>
+		</a>
+	</p>
+
+
+	<div class="progress-box" style="display: none;">
+		<a class="progress-text">ダウンロード中...</a>
+		<a class="completed-files"></a>
+		<div class="progress" style="width:80%;margin-bottom:0.5rem;">
+			<div class="determinate" style="width: 0%;"></div>
+		</div>
+		<a class="progress-cancel" href="javascript:void(0)" style="text-decoration:underline">キャンセル</a>
+	</div>
+
+	<!-- フッターー -->
+	  <footer class="page-footer blue lighten-5">
+    <div class="container">
+      <div class="row">
+      <!--<div class="col l4 offset-l2 s12">-->
+      <div class="col">
+
+<div class="footer__grid-container">
+<ul id="footer__gird-item1">
+  <li><h5 class="grey-text text-darken-3 footer__grid-title">国土数値情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/index.html">国土数値情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">国土数値情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_news.html">国土数値情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_error.html">国土数値情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/error-report/error-report.html">国土数値情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item2">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">位置参照情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj/index.html">位置参照情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_news.html">位置参照情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item3">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">国土調査</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">国土調査 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/landclassification/download.html">国土調査 GISデータのダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/kokjo.html">国土調査とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">土地分類調査</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo_news.html">水調査</a></li>
+</ul>
+<ul id="footer__gird-item4">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">地図で見る</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+</ul>
+<ul id="footer__gird-item5">
+            <li><h5 class="grey-text text-darken-3 g-footer-title">その他</h5></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/i_news.html">重要なお知らせ一覧</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">初めての方へ</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/faq.html">よくある質問（FAQ）</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/agreement.html">利用規約</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html">QGIS活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html#tableau-manual">Tableau活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/event/event.html">イベント特集</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/manual.html">QGISでの国土数値情報利用方法</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/privacy.html">プライバシーポリシー</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/inquiry.html">お問合せ</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/sitemap.html">サイトマップ</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/link.html">リンク</a></li>
+          </ul>
+          </div>
+
+</div>
+      </div>
+    </div>
+
+    <div class="footer-copyright  blue darken-4">
+      <div class="container white-text"> All rights reserved. Copyright(c) National Land Information Division, National Spatial Planning and Regional Policy Bureau, MLIT of Japan </div>
+    </div>
+
+  </footer>
+
+	<script src="../../../ksj/js/gis.js" type="text/javascript">
+
+	</script>
+<script type="text/javascript" async="async" src="/__zenedge/assets/f.js?v=1674207422"></script><script>(function () { var v = 1750924904 * 3.1415926535898; v = Math.floor(v); document.cookie = "__zjc9132="+v+"; expires=Thu, 26 Jun 2025 08:02:57 UTC; path=/"; })()</script></body>
+
+</html>
