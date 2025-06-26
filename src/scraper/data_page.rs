@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ops::RangeInclusive;
 
 use anyhow::{anyhow, Context, Result};
 use bytesize::ByteSize;
@@ -14,12 +15,17 @@ use super::table_read::{parse_table, parsed_to_string_array};
 // This regex looks for one or more digits at the very start of the string, immediately followed by '年'.
 static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap());
 
+// Regex for extracting year ranges and URLs from data selection lines
+static YEAR_RANGE_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(データ基準年：|最新のデータは)(\d{4})(～?(\d{4}))?年").unwrap());
+
 #[derive(Debug, Serialize)]
 pub struct DataPage {
     pub url: Url,
     #[serde(skip)]
     pub unfiltered_items: Vec<DataItem>,
     pub metadata: DataPageMetadata,
+    pub data_selections: Vec<DataSelection>,
 }
 
 impl DataPage {
@@ -34,11 +40,13 @@ impl DataPage {
             .with_context(|| format!("when accessing {}", url.to_string()))?;
 
         let unfiltered_items = Self::extract_data_items(&document, url)?;
+        let data_selections = Self::extract_data_selections(&document, url)?;
 
         Ok(DataPage {
             url: url.clone(),
             unfiltered_items,
             metadata,
+            data_selections,
         })
     }
 
@@ -384,6 +392,62 @@ impl DataPage {
         }
         result
     }
+
+    /// Extracts data selections from the page that contain year ranges and URLs
+    fn extract_data_selections(document: &Html, base_url: &Url) -> Result<Vec<DataSelection>> {
+        let mut selections = Vec::new();
+        let p_selector = Selector::parse("p").unwrap();
+
+        for element in document.select(&p_selector) {
+            let text = element.text().collect::<String>();
+            if !text.contains("選択したデータ項目は") {
+                continue;
+            }
+            if !(text.contains("最新のデータは") || text.contains("データ基準年：")) {
+                continue;
+            }
+            // Split by <br> tags and process each line
+            let html_content = element.inner_html();
+            let lines: Vec<&str> = html_content.split("<br>").collect();
+
+            for line in lines {
+                let line_document = Html::parse_fragment(line);
+                let line_text = line_document
+                    .root_element()
+                    .text()
+                    .collect::<String>()
+                    .trim()
+                    .to_string();
+                let Some(captures) = YEAR_RANGE_REGEX.captures(&line_text) else {
+                    continue;
+                };
+                let start_year = captures
+                    .get(2)
+                    .and_then(|m| m.as_str().parse::<u32>().ok())
+                    .ok_or_else(|| anyhow!("failed to parse start year from: {}", line_text))?;
+                let end_year = captures
+                    .get(4)
+                    .and_then(|m| m.as_str().parse::<u32>().ok())
+                    .unwrap_or(start_year);
+                let a_selector = Selector::parse("a").unwrap();
+                let url = line_document
+                    .select(&a_selector)
+                    .next()
+                    .and_then(|a| a.value().attr("href"))
+                    .and_then(|href| base_url.join(href).ok());
+                let url = if url.is_none() && line_text.contains("最新のデータは") {
+                    base_url.clone()
+                } else {
+                    url.ok_or_else(|| anyhow!("no URL found in line: {}", line_text))?
+                };
+                selections.push(DataSelection {
+                    year: start_year..=end_year,
+                    url,
+                });
+            }
+        }
+        Ok(selections)
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -394,6 +458,12 @@ pub struct DataItem {
     pub year: Option<String>,  // 年
     pub nendo: Option<String>, // 年度
     pub file_url: Url,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DataSelection {
+    pub year: RangeInclusive<u32>,
+    pub url: Url,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -554,6 +624,36 @@ mod tests {
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
         let page = DataPage::scrape(&url).await.unwrap();
         assert_eq!(page.items().len(), 39);
+
+        // Test data selections functionality
+        assert!(!page.data_selections.is_empty());
+        println!("C23 data selections:");
+        for (i, selection) in page.data_selections.iter().enumerate() {
+            println!(
+                "  {}: {}-{} -> {}",
+                i + 1,
+                selection.year.start(),
+                selection.year.end(),
+                selection.url
+            );
+        }
+
+        // Verify that each selection has valid data
+        for selection in &page.data_selections {
+            assert!(*selection.year.start() > 1900 && *selection.year.start() < 2100);
+            assert!(selection.url.to_string().starts_with("http"));
+        }
+
+        // Check that we have at least one selection with the current document URL (最新データ)
+        let current_url_selections: Vec<_> = page
+            .data_selections
+            .iter()
+            .filter(|s| s.url == url)
+            .collect();
+        assert!(
+            !current_url_selections.is_empty(),
+            "Should have at least one selection with current document URL for 最新データ"
+        );
     }
 
     #[tokio::test]
@@ -719,6 +819,28 @@ mod tests {
 
         for test_case in test_cases {
             run_parse_ref_code_test(test_case).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn test_extract_data_selections() {
+        let url =
+            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html").unwrap();
+        let page = DataPage::scrape(&url).await.unwrap();
+        assert!(!page.data_selections.is_empty());
+        println!("Found {} data selections:", page.data_selections.len());
+        for (i, selection) in page.data_selections.iter().enumerate() {
+            println!(
+                "  {}: {}-{} -> {}",
+                i + 1,
+                selection.year.start(),
+                selection.year.end(),
+                selection.url
+            );
+        }
+        for selection in &page.data_selections {
+            assert!(*selection.year.start() > 1900 && *selection.year.start() < 2100);
+            assert!(selection.url.to_string().starts_with("http"));
         }
     }
 }
