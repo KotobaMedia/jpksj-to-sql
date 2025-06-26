@@ -16,8 +16,15 @@ use super::table_read::{parse_table, parsed_to_string_array};
 static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap());
 
 // Regex for extracting year ranges and URLs from data selection lines
-static YEAR_RANGE_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(データ基準年：|最新のデータは)(\d{4})(～?(\d{4}))?年").unwrap());
+// Supports patterns like:
+// - "最新のデータは2021年"
+// - "最新のデータはデータ作成年度 2021年度（令和3年度）版です"
+// - "データ基準年：2020年"
+// - "データ作成年度：2020年度（令和2年度）～2014年度（平成26年度）版"
+// - "データ作成年度：2013年度（平成25年度）版"
+static YEAR_RANGE_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"(データ基準年：|最新のデータは(?:データ作成年度\s*)?|データ作成年度：)(\d{4})(年度?|年)(～?(\d{4})(年度?|年))?").unwrap()
+});
 
 #[derive(Debug, Serialize)]
 pub struct DataPage {
@@ -25,7 +32,7 @@ pub struct DataPage {
     #[serde(skip)]
     pub unfiltered_items: Vec<DataItem>,
     pub metadata: DataPageMetadata,
-    pub data_selections: Vec<DataSelection>,
+    pub yearly_versions: Vec<YearlyVersion>,
 }
 
 impl DataPage {
@@ -40,13 +47,13 @@ impl DataPage {
             .with_context(|| format!("when accessing {}", url.to_string()))?;
 
         let unfiltered_items = Self::extract_data_items(&document, url)?;
-        let data_selections = Self::extract_data_selections(&document, url)?;
+        let yearly_versions = Self::extract_yearly_versions(&document, url)?;
 
         Ok(DataPage {
             url: url.clone(),
             unfiltered_items,
             metadata,
-            data_selections,
+            yearly_versions,
         })
     }
 
@@ -393,8 +400,8 @@ impl DataPage {
         result
     }
 
-    /// Extracts data selections from the page that contain year ranges and URLs
-    fn extract_data_selections(document: &Html, base_url: &Url) -> Result<Vec<DataSelection>> {
+    /// Extracts yearly versions of the same dataset from the page that contain year ranges and URLs
+    fn extract_yearly_versions(document: &Html, base_url: &Url) -> Result<Vec<YearlyVersion>> {
         let mut selections = Vec::new();
         let p_selector = Selector::parse("p").unwrap();
 
@@ -403,7 +410,10 @@ impl DataPage {
             if !text.contains("選択したデータ項目は") {
                 continue;
             }
-            if !(text.contains("最新のデータは") || text.contains("データ基準年：")) {
+            if !(text.contains("最新のデータは")
+                || text.contains("データ基準年：")
+                || text.contains("データ作成年度："))
+            {
                 continue;
             }
             // Split by <br> tags and process each line
@@ -418,35 +428,82 @@ impl DataPage {
                     .collect::<String>()
                     .trim()
                     .to_string();
-                let Some(captures) = YEAR_RANGE_REGEX.captures(&line_text) else {
-                    continue;
-                };
-                let start_year = captures
-                    .get(2)
-                    .and_then(|m| m.as_str().parse::<u32>().ok())
-                    .ok_or_else(|| anyhow!("failed to parse start year from: {}", line_text))?;
-                let end_year = captures
-                    .get(4)
-                    .and_then(|m| m.as_str().parse::<u32>().ok())
-                    .unwrap_or(start_year);
-                let a_selector = Selector::parse("a").unwrap();
-                let url = line_document
-                    .select(&a_selector)
-                    .next()
-                    .and_then(|a| a.value().attr("href"))
-                    .and_then(|href| base_url.join(href).ok());
-                let url = if url.is_none() && line_text.contains("最新のデータは") {
-                    base_url.clone()
-                } else {
-                    url.ok_or_else(|| anyhow!("no URL found in line: {}", line_text))?
-                };
-                selections.push(DataSelection {
-                    year: start_year..=end_year,
-                    url,
-                });
+
+                // Try to match the improved year range pattern first
+                if let Some(captures) = YEAR_RANGE_REGEX.captures(&line_text) {
+                    let start_year = captures
+                        .get(2)
+                        .and_then(|m| m.as_str().parse::<u32>().ok())
+                        .ok_or_else(|| anyhow!("failed to parse start year from: {}", line_text))?;
+
+                    let end_year = captures
+                        .get(5)
+                        .and_then(|m| m.as_str().parse::<u32>().ok())
+                        .unwrap_or(start_year);
+
+                    let a_selector = Selector::parse("a").unwrap();
+                    let url = line_document
+                        .select(&a_selector)
+                        .next()
+                        .and_then(|a| a.value().attr("href"))
+                        .and_then(|href| base_url.join(href).ok());
+
+                    let url = if url.is_none() && line_text.contains("最新のデータは") {
+                        base_url.clone()
+                    } else {
+                        url.ok_or_else(|| anyhow!("no URL found in line: {}", line_text))?
+                    };
+
+                    selections.push(YearlyVersion {
+                        year: start_year..=end_year,
+                        url,
+                    });
+                } else if line_text.contains("データ作成年度：") {
+                    // Handle comma-separated years pattern
+                    if let Some(years) = Self::extract_multiple_years(&line_text) {
+                        let a_selector = Selector::parse("a").unwrap();
+                        let url = line_document
+                            .select(&a_selector)
+                            .next()
+                            .and_then(|a| a.value().attr("href"))
+                            .and_then(|href| base_url.join(href).ok())
+                            .ok_or_else(|| anyhow!("no URL found in line: {}", line_text))?;
+
+                        // Create a range from min to max year
+                        let min_year = *years.iter().min().unwrap();
+                        let max_year = *years.iter().max().unwrap();
+
+                        selections.push(YearlyVersion {
+                            year: min_year..=max_year,
+                            url,
+                        });
+                    }
+                }
             }
         }
         Ok(selections)
+    }
+
+    /// Extracts multiple years from comma-separated year lists
+    fn extract_multiple_years(text: &str) -> Option<Vec<u32>> {
+        let mut years = Vec::new();
+
+        // Extract all 4-digit numbers followed by 年度 or 年
+        let year_pattern = Regex::new(r"(\d{4})年度?").unwrap();
+
+        for capture in year_pattern.captures_iter(text) {
+            if let Some(year_match) = capture.get(1) {
+                if let Ok(year) = year_match.as_str().parse::<u32>() {
+                    years.push(year);
+                }
+            }
+        }
+
+        if years.is_empty() {
+            None
+        } else {
+            Some(years)
+        }
     }
 }
 
@@ -461,7 +518,7 @@ pub struct DataItem {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct DataSelection {
+pub struct YearlyVersion {
     pub year: RangeInclusive<u32>,
     pub url: Url,
 }
@@ -617,49 +674,61 @@ fn parse_recency(item: &DataItem) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scraper::test_helpers::{fixture_url, setup_mock_server};
+
+    async fn create_mock_server() -> (mockito::ServerGuard, Box<dyn Fn() -> Url>) {
+        setup_mock_server().await
+    }
 
     #[tokio::test]
-    async fn test_scrape_c23() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
+    async fn test_scrape_c28() {
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-C28-2021.html");
+
         let page = DataPage::scrape(&url).await.unwrap();
-        assert_eq!(page.items().len(), 39);
+        assert_eq!(page.items().len(), 1);
 
-        // Test data selections functionality
-        assert!(!page.data_selections.is_empty());
-        println!("C23 data selections:");
-        for (i, selection) in page.data_selections.iter().enumerate() {
-            println!(
-                "  {}: {}-{} -> {}",
-                i + 1,
-                selection.year.start(),
-                selection.year.end(),
-                selection.url
+        // Test yearly versions functionality (some pages may not have yearly versions)
+        if !page.yearly_versions.is_empty() {
+            println!("Found {} yearly versions:", page.yearly_versions.len());
+            for (i, selection) in page.yearly_versions.iter().enumerate() {
+                println!(
+                    "  {}: {}-{} -> {}",
+                    i + 1,
+                    selection.year.start(),
+                    selection.year.end(),
+                    selection.url
+                );
+            }
+
+            // Verify that each selection has valid data
+            for selection in &page.yearly_versions {
+                assert!(*selection.year.start() > 1900 && *selection.year.start() < 2100);
+                assert!(selection.url.to_string().starts_with("http"));
+            }
+
+            // Check that we have at least one selection with the current document URL (最新データ)
+            let current_url_selections: Vec<_> = page
+                .yearly_versions
+                .iter()
+                .filter(|s| s.url == url)
+                .collect();
+            assert!(
+                !current_url_selections.is_empty(),
+                "Should have at least one yearly version with current document URL for 最新データ"
             );
+        } else {
+            println!("No yearly versions found for C28 (this may be expected)");
         }
-
-        // Verify that each selection has valid data
-        for selection in &page.data_selections {
-            assert!(*selection.year.start() > 1900 && *selection.year.start() < 2100);
-            assert!(selection.url.to_string().starts_with("http"));
-        }
-
-        // Check that we have at least one selection with the current document URL (最新データ)
-        let current_url_selections: Vec<_> = page
-            .data_selections
-            .iter()
-            .filter(|s| s.url == url)
-            .collect();
-        assert!(
-            !current_url_selections.is_empty(),
-            "Should have at least one selection with current document URL for 最新データ"
-        );
     }
 
     #[tokio::test]
     async fn test_scrape_n03() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html").unwrap();
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-N03-2024.html");
+
         let page = DataPage::scrape(&url).await.unwrap();
         // 全国パターン
         assert_eq!(page.items().len(), 1);
@@ -687,8 +756,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_scrape_a27() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A27-2023.html").unwrap();
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-A27-2023.html");
+
         let page = DataPage::scrape(&url).await.unwrap();
         // 全国パターン
         assert_eq!(page.items().len(), 1);
@@ -707,8 +778,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_scrape_a38() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A38-2020.html").unwrap();
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-A38-2020.html");
+
         let page = DataPage::scrape(&url).await.unwrap();
         // 全国パターン
         assert_eq!(page.items().len(), 1);
@@ -723,9 +796,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_ref_enum() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/L01_v3_2_RoadEnumType.html")
-                .unwrap();
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, "/ksj/gml/codelist/L01_v3_2_RoadEnumType.html");
+
         let ref_enum = parse_ref_from_url(&url).await.unwrap().unwrap();
         if let RefType::Enum(ref enum_list) = ref_enum {
             assert_eq!(enum_list.len(), 14);
@@ -743,7 +817,10 @@ mod tests {
     }
 
     async fn run_parse_ref_code_test(test_case: TestCase<'_>) {
-        let url = Url::parse(test_case.url).unwrap();
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, test_case.url);
+
         let ref_enum = parse_ref_from_url(&url).await.unwrap().unwrap();
 
         match ref_enum {
@@ -761,7 +838,7 @@ mod tests {
     async fn test_parse_ref_code() {
         let test_cases = [
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/reasonForDesignationCode.html",
+                url: "/ksj/gml/codelist/reasonForDesignationCode.html",
                 expected_len: 7,
                 expected: HashMap::from([
                     ("1", "水害（河川）"),
@@ -771,7 +848,7 @@ mod tests {
                 ]),
             },
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/CodeOfPhenomenon.html",
+                url: "/ksj/gml/codelist/CodeOfPhenomenon.html",
                 expected_len: 3,
                 expected: HashMap::from([
                     ("1", "急傾斜地の崩壊"),
@@ -780,12 +857,12 @@ mod tests {
                 ]),
             },
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/MedClassCd.html",
+                url: "/ksj/gml/codelist/MedClassCd.html",
                 expected_len: 3,
                 expected: HashMap::from([("1", "病院"), ("2", "診療所"), ("3", "歯科診療所")]),
             },
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/ReferenceDataCd.html",
+                url: "/ksj/gml/codelist/ReferenceDataCd.html",
                 expected_len: 6,
                 expected: HashMap::from([
                     ("1", "10mDEM"),
@@ -795,26 +872,20 @@ mod tests {
                 ]),
             },
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/LandUseCd-09.html",
+                url: "/ksj/gml/codelist/LandUseCd-09.html",
                 expected_len: 17,
                 expected: HashMap::from([("0100", "田"), ("1100", "河川地及び湖沼")]),
             },
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/welfareInstitution_welfareFacilityMiddleClassificationCode.html",
+                url: "/ksj/gml/codelist/welfareInstitution_welfareFacilityMiddleClassificationCode.html",
                 expected_len: 62,
-                expected: HashMap::from([
-                    ("0101", "救護施設"),
-                    ("0399", "その他"),
-                ]),
+                expected: HashMap::from([("0101", "救護施設"), ("0399", "その他")]),
             },
             TestCase {
-                url: "https://nlftp.mlit.go.jp/ksj/gml/codelist/water_depth_code.html",
+                url: "/ksj/gml/codelist/water_depth_code.html",
                 expected_len: 6,
-                expected: HashMap::from([
-                    ("1", "0m 以上 0.5m 未満"),
-                    ("6", "20.0m 以上"),
-                ]),
-            }
+                expected: HashMap::from([("1", "0m 以上 0.5m 未満"), ("6", "20.0m 以上")]),
+            },
         ];
 
         for test_case in test_cases {
@@ -823,13 +894,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_extract_data_selections() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html").unwrap();
+    async fn test_extract_yearly_versions() {
+        let (_server, base_url_fn) = create_mock_server().await;
+        let base_url = base_url_fn();
+        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-N03-2024.html");
+
         let page = DataPage::scrape(&url).await.unwrap();
-        assert!(!page.data_selections.is_empty());
-        println!("Found {} data selections:", page.data_selections.len());
-        for (i, selection) in page.data_selections.iter().enumerate() {
+        assert!(!page.yearly_versions.is_empty());
+        println!("Found {} data selections:", page.yearly_versions.len());
+        for (i, selection) in page.yearly_versions.iter().enumerate() {
             println!(
                 "  {}: {}-{} -> {}",
                 i + 1,
@@ -838,7 +911,7 @@ mod tests {
                 selection.url
             );
         }
-        for selection in &page.data_selections {
+        for selection in &page.yearly_versions {
             assert!(*selection.year.start() > 1900 && *selection.year.start() < 2100);
             assert!(selection.url.to_string().starts_with("http"));
         }

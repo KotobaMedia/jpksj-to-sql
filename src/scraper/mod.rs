@@ -10,6 +10,9 @@ mod download_queue;
 pub mod initial;
 mod table_read;
 
+#[cfg(test)]
+mod test_helpers;
+
 #[derive(Clone)]
 pub struct Dataset {
     // pub item: data_page::DataItem,
