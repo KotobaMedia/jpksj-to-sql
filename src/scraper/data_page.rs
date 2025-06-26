@@ -17,7 +17,8 @@ static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap())
 #[derive(Debug, Serialize)]
 pub struct DataPage {
     pub url: Url,
-    items: Vec<DataItem>,
+    #[serde(skip)]
+    pub unfiltered_items: Vec<DataItem>,
     pub metadata: DataPageMetadata,
 }
 
@@ -32,14 +33,18 @@ impl DataPage {
             .await
             .with_context(|| format!("when accessing {}", url.to_string()))?;
 
-        let items = Self::extract_data_items(&document, url)?;
-        let items = Self::filter_data_items(items);
+        let unfiltered_items = Self::extract_data_items(&document, url)?;
 
         Ok(DataPage {
             url: url.clone(),
-            items,
+            unfiltered_items,
             metadata,
         })
+    }
+
+    /// Returns filtered data items based on the filtering logic
+    pub fn items(&self) -> Vec<DataItem> {
+        Self::filter_data_items(&self.unfiltered_items)
     }
 
     /// Extracts data items from the HTML document
@@ -204,7 +209,7 @@ impl DataPage {
     fn extract_attribute_info(
         tables: &[scraper::ElementRef],
         table_sel: &Selector,
-        t_cell_sel: &Selector,
+        _t_cell_sel: &Selector,
         strip_space_re: &Regex,
         base_url: &Url,
     ) -> Result<HashMap<String, AttributeMetadata>> {
@@ -345,15 +350,15 @@ impl DataPage {
     }
 
     /// Filters data items to select the most recent and relevant ones
-    fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
+    fn filter_data_items(items: &[DataItem]) -> Vec<DataItem> {
         // Step 1: Filter items by CRS (世界測地系)
-        let crs_filtered: Vec<DataItem> = items
-            .into_iter()
+        let crs_filtered: Vec<&DataItem> = items
+            .iter()
             .filter(|item| item.crs == "世界測地系")
             .collect();
 
         // Step 2: Group items by area
-        let mut area_groups: HashMap<String, Vec<DataItem>> = HashMap::new();
+        let mut area_groups: HashMap<String, Vec<&DataItem>> = HashMap::new();
         for item in crs_filtered {
             // If 全国 is already in the map, and we aren't in the 全国 group, skip this item
             if area_groups.contains_key("全国") && item.area != "全国" {
@@ -370,10 +375,11 @@ impl DataPage {
                 result.extend(
                     group
                         .into_iter()
-                        .filter(|item| parse_recency(item) == Some(max_year)),
+                        .filter(|item| parse_recency(item) == Some(max_year))
+                        .cloned(),
                 );
             } else {
-                result.extend(group);
+                result.extend(group.into_iter().cloned());
             }
         }
         result
@@ -547,7 +553,7 @@ mod tests {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
         let page = DataPage::scrape(&url).await.unwrap();
-        assert_eq!(page.items.len(), 39);
+        assert_eq!(page.items().len(), 39);
     }
 
     #[tokio::test]
@@ -556,7 +562,7 @@ mod tests {
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html").unwrap();
         let page = DataPage::scrape(&url).await.unwrap();
         // 全国パターン
-        assert_eq!(page.items.len(), 1);
+        assert_eq!(page.items().len(), 1);
 
         let naiyo = page.metadata.fundamental.get("内容").unwrap();
         assert!(naiyo.contains("全国の行政界について、都道府県名、"));
@@ -585,7 +591,7 @@ mod tests {
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A27-2023.html").unwrap();
         let page = DataPage::scrape(&url).await.unwrap();
         // 全国パターン
-        assert_eq!(page.items.len(), 1);
+        assert_eq!(page.items().len(), 1);
 
         let a27_001 = page.metadata.attribute.get("A27_001").unwrap();
         assert_eq!(a27_001.name, "行政区域コード");
@@ -605,7 +611,7 @@ mod tests {
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A38-2020.html").unwrap();
         let page = DataPage::scrape(&url).await.unwrap();
         // 全国パターン
-        assert_eq!(page.items.len(), 1);
+        assert_eq!(page.items().len(), 1);
 
         let a38a_001 = page.metadata.attribute.get("A38a_001").unwrap();
         assert_eq!(a38a_001.name, "行政区域コード");
