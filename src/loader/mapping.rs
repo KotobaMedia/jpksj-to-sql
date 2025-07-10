@@ -135,17 +135,25 @@ fn should_start_new_metadata_record(
         .and_then(|v| if v.is_empty() { None } else { Some(v) });
     let original_identifier = data_to_string(&row[8]);
     let mapping_id = data_to_string(&row[7]);
-    if let (Some(cat1), Some(cat2), Some(shapefile_names)) = (cat1, cat2, shapefile_names) {
+
+    if let (Some(cat1), Some(cat2)) = (cat1, cat2) {
         if builder.cat1.clone().is_some_and(|s| s != cat1)
             || builder.cat2.clone().is_some_and(|s| s != cat2)
-            || builder
-                .shapefile_matcher
-                .clone()
-                .is_some_and(|s| s != shapefile_names)
         {
             return true;
         }
     }
+
+    if let Some(shapefile_names) = shapefile_names {
+        if builder
+            .shapefile_matcher
+            .clone()
+            .is_some_and(|s| s != shapefile_names)
+        {
+            return true;
+        }
+    }
+
     if let (Some(identifier), Some(mapping_id)) = (original_identifier, mapping_id) {
         // 例外: 医療圏。１，２，３次医療圏はそれぞれ別テーブルとして扱う。
         // -> 識別子はそれぞれA38だが、属性コードの頭4文字が異なる（A38a, A38b, A38c）
