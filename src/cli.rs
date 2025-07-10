@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 
 #[derive(Parser)]
+#[command(version)]
 pub struct Cli {
     /// Postgresデータベースに接続する文字列。 ogr2ogr に渡されます。冒頭の `PG:` は省略してください。
     pub postgres_url: String,
