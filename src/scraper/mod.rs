@@ -33,6 +33,7 @@ impl fmt::Display for Dataset {
 pub struct Scraper {
     skip_dl: bool,
     filter_identifiers: Option<Vec<String>>,
+    year: Option<u32>,
 }
 
 impl Scraper {
@@ -52,7 +53,7 @@ impl Scraper {
                 }
             }
 
-            let page_res = data_page::scrape(&initial_item.url).await;
+            let page_res = data_page::scrape(&initial_item.url, self.year).await;
             if let Err(err) = page_res {
                 println!("[ERROR, skipping...] {:?}", err);
                 continue;
