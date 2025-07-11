@@ -21,6 +21,7 @@ async fn main() -> Result<()> {
     let scraper = scraper::ScraperBuilder::default()
         .skip_dl(args.skip_download)
         .filter_identifiers(args.filter_identifiers.clone())
+        .year(args.year)
         .build()
         .context("while building scraper")?;
     let datasets = scraper
