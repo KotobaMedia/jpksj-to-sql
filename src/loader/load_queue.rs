@@ -43,7 +43,7 @@ async fn load(
             shapefiles.extend(shapefiles_in_zip);
         }
 
-        // println!("Found {} shapefiles: {:?}", shapefiles.len(), shapefiles);
+        println!("Found {} shapefiles.", shapefiles.len());
 
         let has_layer = gdal::has_layer(postgres_url, &mapping.identifier).await?;
         if skip_if_exists && has_layer {

@@ -40,49 +40,76 @@ pub async fn scrape(url: &Url, year: Option<u32>) -> Result<DataPage> {
         .await
         .with_context(|| format!("when accessing {}", url.to_string()))?;
 
-    let td_sel = Selector::parse("td").unwrap();
-    let data_tr_sel = Selector::parse("table.dataTables tr, table.dataTables-mesh tr").unwrap();
+    let table_sel =
+        Selector::parse("table.dataTables, table.dataTables-mesh, table.dataTables_e").unwrap();
+    let thead_tr_sel = Selector::parse("thead tr").unwrap();
+    let tbody_tr_sel = Selector::parse("tbody tr").unwrap();
     let data_path_re = Regex::new(r"javascript:DownLd\('[^']*',\s*'[^']*',\s*'([^']+)'").unwrap();
 
     let mut items: Vec<DataItem> = Vec::new();
     let mut use_nendo = false;
-    for row in document.select(&data_tr_sel) {
-        let tds = row.select(&td_sel).collect::<Vec<_>>();
-        if tds.len() == 0 {
-            continue;
-        }
-        let area = tds[0].text().collect::<String>().trim().to_string();
-        if area == "地域" {
-            // header
-            if tds[2].text().collect::<String>().contains("年度") {
-                use_nendo = true;
-            }
-            continue;
-        }
 
-        let crs = tds[1].text().collect::<String>().trim().to_string();
+    let table = document.select(&table_sel).next().unwrap();
+    let header_row = table
+        .select(&thead_tr_sel)
+        .next()
+        .expect("No header row found in thead!");
+    let mut header_map = HashMap::new();
+    for (i, th) in header_row
+        .select(&Selector::parse("th").unwrap())
+        .enumerate()
+    {
+        let col_name = th.text().collect::<String>().trim().to_string();
+        if col_name.contains("年度") {
+            use_nendo = true;
+        }
+        header_map.insert(col_name, i);
+    }
 
-        let year_str = tds[2].text().collect::<String>().trim().to_string();
-        let year = if use_nendo == true {
-            None
+    for row in table.select(&tbody_tr_sel) {
+        let tds = row
+            .select(&Selector::parse("td").unwrap())
+            .collect::<Vec<_>>();
+
+        let area = tds[*header_map.get("地域").unwrap()]
+            .text()
+            .collect::<String>()
+            .trim()
+            .to_string();
+        let crs = tds[*header_map.get("測地系").unwrap()]
+            .text()
+            .collect::<String>()
+            .trim()
+            .to_string();
+        let year_col = header_map.get("年度").or_else(|| header_map.get("年"));
+        let year_str = year_col
+            .and_then(|&idx| tds.get(idx))
+            .map(|td| td.text().collect::<String>().trim().to_string())
+            .unwrap_or_default();
+
+        let (year, nendo) = if use_nendo {
+            (None, Some(year_str.clone()))
         } else {
-            Some(year_str.clone())
+            (Some(year_str.clone()), None)
         };
-        let nendo = if use_nendo == false {
-            None
-        } else {
-            Some(year_str)
-        };
-        let Some(bytes_str) = tds[3].text().next().map(|s| s.to_string()) else {
+
+        let bytes_str = header_map
+            .get("ファイル容量")
+            .and_then(|&idx| tds.get(idx))
+            .and_then(|td| td.text().next())
+            .map(|s| s.to_string());
+        let file_js_onclick = header_map
+            .get("ダウンロード")
+            .and_then(|&idx| tds.get(idx))
+            .and_then(|td| td.select(&Selector::parse("a").unwrap()).next())
+            .and_then(|a| a.value().attr("onclick"));
+
+        let Some(bytes_str) = bytes_str else {
             continue;
         };
         // if we couldn't parse the bytes, we'll just use 10MB as a default. It's just used for progress.
         let bytes: ByteSize = bytes_str.parse().unwrap_or_else(|_| ByteSize::mb(10));
-        let Some(file_js_onclick) = tds[5]
-            .select(&Selector::parse("a").unwrap())
-            .next()
-            .and_then(|a| a.value().attr("onclick"))
-        else {
+        let Some(file_js_onclick) = file_js_onclick else {
             // panic!("file_js_onclick not found: {:?}", tds[5].html());
             continue;
         };
