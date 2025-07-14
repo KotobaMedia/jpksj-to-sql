@@ -31,7 +31,7 @@ pub struct DataItem {
     pub file_url: Url,
 }
 
-pub async fn scrape(url: &Url) -> Result<DataPage> {
+pub async fn scrape(url: &Url, year: Option<u32>) -> Result<DataPage> {
     let response = reqwest::get(url.clone()).await?;
     let body = response.text().await?;
     let document = Html::parse_document(&body);
@@ -106,7 +106,7 @@ pub async fn scrape(url: &Url) -> Result<DataPage> {
         items.push(item);
     }
 
-    items = filter_data_items(items);
+    items = filter_data_items(items, year);
 
     Ok(DataPage {
         url: url.clone(),
@@ -425,7 +425,7 @@ fn parse_recency(item: &DataItem) -> Option<u32> {
  * 全国データある場合はそれだけを返す
  * ない場合はそのまま帰す（殆どの場合は都道府県別）
  */
-fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
+fn filter_data_items(items: Vec<DataItem>, year: Option<u32>) -> Vec<DataItem> {
     // Step 1: Filter items by CRS.
     let crs_filtered: Vec<DataItem> = items
         .into_iter()
@@ -445,7 +445,10 @@ fn filter_data_items(items: Vec<DataItem>) -> Vec<DataItem> {
     // Step 3: For each area evaluate the max recency and filter items accordingly.
     let mut result = Vec::new();
     for (_area, group) in area_groups {
-        let max_recency = group.iter().filter_map(|item| parse_recency(item)).max();
+        let max_recency = match year {
+            Some(y) => Some(y),
+            None => group.iter().filter_map(|item| parse_recency(item)).max(),
+        };
         if let Some(max_year) = max_recency {
             result.extend(
                 group
@@ -467,7 +470,7 @@ mod tests {
     async fn test_scrape_c23() {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
-        let page = scrape(&url).await.unwrap();
+        let page = scrape(&url, None).await.unwrap();
         assert_eq!(page.items.len(), 39);
     }
 
@@ -475,7 +478,7 @@ mod tests {
     async fn test_scrape_n03() {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html").unwrap();
-        let page = scrape(&url).await.unwrap();
+        let page = scrape(&url, None).await.unwrap();
         // 全国パターン
         assert_eq!(page.items.len(), 1);
 
@@ -504,7 +507,7 @@ mod tests {
     async fn test_scrape_a27() {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A27-2023.html").unwrap();
-        let page = scrape(&url).await.unwrap();
+        let page = scrape(&url, None).await.unwrap();
         // 全国パターン
         assert_eq!(page.items.len(), 1);
 
@@ -524,7 +527,7 @@ mod tests {
     async fn test_scrape_a38() {
         let url =
             Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A38-2020.html").unwrap();
-        let page = scrape(&url).await.unwrap();
+        let page = scrape(&url, None).await.unwrap();
         // 全国パターン
         assert_eq!(page.items.len(), 1);
 
@@ -634,6 +637,17 @@ mod tests {
 
         for test_case in test_cases {
             run_parse_ref_code_test(test_case).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn test_scrape_specific_year() {
+        let url =
+            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A29-2019.html").unwrap();
+        let page = scrape(&url, Some(2011)).await.unwrap();
+        for item in page.items {
+            let year = parse_recency(&item).unwrap();
+            assert_eq!(year, 2011);
         }
     }
 }
