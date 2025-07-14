@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 
 #[derive(Parser)]
+#[command(version)]
 pub struct Cli {
     /// Postgresデータベースに接続する文字列。 ogr2ogr に渡されます。冒頭の `PG:` は省略してください。
     pub postgres_url: String,
@@ -27,6 +28,11 @@ pub struct Cli {
     /// 複数指定する場合は `,` で区切ってください
     #[arg(long, value_delimiter = ',')]
     pub filter_identifiers: Option<Vec<String>>,
+
+    /// 取得するデータセットの年（例: 2019）
+    /// 指定しない場合は最新のデータセットが使用されます
+    #[arg(long)]
+    pub year: Option<u32>,
 }
 
 pub fn main() -> Cli {

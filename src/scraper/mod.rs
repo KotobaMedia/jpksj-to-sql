@@ -36,6 +36,7 @@ impl fmt::Display for Dataset {
 pub struct Scraper {
     skip_dl: bool,
     filter_identifiers: Option<Vec<String>>,
+    year: Option<u32>,
 }
 
 impl Scraper {
