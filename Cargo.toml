@@ -4,6 +4,13 @@ version = "0.2.0"
 edition = "2021"
 license = "MIT"
 
+[[bin]]
+name = "jpksj-to-sql"
+path = "src/main.rs"
+# disable tests and benchmarks, they are already run via the lib.rs
+test = false
+bench = false
+
 [dependencies]
 anyhow = "1.0"
 async-channel = "2.3.1"
