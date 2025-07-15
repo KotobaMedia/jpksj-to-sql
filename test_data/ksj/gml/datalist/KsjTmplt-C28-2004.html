@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta content="ja" http-equiv="content-language">
+		<meta content="width=device-width" name="viewport">
+		<meta content="telephone=no" name="format-detection">
+		<meta content="" name="description">
+		<meta content="" name="keyword">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<link href="../../../ksj/css/materialize.css" media="screen,projection" rel="stylesheet" type="text/css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js">
+  
+		</script>
+		<link href="../../../ksj/css/style.css" media="screen,projection" rel="stylesheet" type="text/css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="text/javascript">
+  
+		</script>
+		<title>国土数値情報 | 空港データ</title>
+	
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBHCLWJ');</script>
+<!-- End Google Tag Manager -->
+
+</head>
+
+	<body>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KBHCLWJ"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+		<!-- ヘッダー -->   
+		
+  <header class="gmenu">
+
+
+    <nav class="nav-extended blue darken-3">
+      <div class="nav-wrapper">
+        <div>
+          <span class="gmenu__logo-M">
+            <img class="img__logo-M" src="/ksj/img/logo.png" alt="国土交通省">
+          </span>
+        </div>
+        <a class="gmenu__title" href="/">国土数値情報ダウンロードサイト</a>
+        <a data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
+
+        <ul id="nav-mobile" class="right hide-on-med-and-down gmenu__title-line">
+          <li><a class="nav_padding_10" href="/first.html">初めての方へ</a></li>
+          <li><a class="nav_padding_10" href="/ksj/case_studies.html">活用事例</a></li>
+          <li><a class="nav_padding_10" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">アンケート</a></li>
+          <li><a class="nav_padding_10" href="/ksj/other/other.html">その他</a></li>
+          <li><a class="waves-effect waves-light btn" "nav_padding_10" href="/ksj/inquiry.html">お問合せ</a></li>
+          <!-- 検索窓　
+          <li>
+            <form class="search-form" action="https://www.google.co.jp/cse" name="cse-search-box" target="_blank">
+              <input value="6768d71d594cb4140" name="cx" type="hidden">
+              <input value="UTF-8" name="ie" type="hidden">
+              <input class="search-input" size="16" name="q" type="text" placeholder="サイト内を検索">
+              <button class="search-btn blue darken-3" value="" name="sa"><i class="material-icons">search</i></button>
+            </form>
+          </li>-->
+          <div>
+            <span class="gmenu__logo">
+              <img class="img__logo" src="/ksj/img/logo.png" alt="国土交通省">
+            </span>
+          </div>
+        </ul>
+
+
+      </div>
+    </nav>
+
+
+    <ul class="sidenav collection with-header" id="mobile-demo"> 
+    <li><a href="/ksj/index.html">国土数値情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/kokjo/inspect/inspect.html">国土調査<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/webmapc/mapmain.html">地図で見る<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a class="collection-item" href="/first.html">初めての方へ</a></li>
+        <li><a class="collection-item" href="/ksj/case_studies.html">活用事例</a></li>
+        <li><a class="collection-item" href="/ksj/inquiry.html">お問合せ</a></li>
+        <li><a class="collection-item" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li>
+        <li><a class="collection-item" href="/ksj/other/other.html">その他</a></li>
+    </ul>
+
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+  </header>
+
+
+<header class="gmenu__contents-line">
+  <!-- mega size menu -->
+  <!--
+  <div>
+    <ul class="main-menu">       
+      <li class="menu__mega">
+        <a href="#con-1" class="init-bottom">国土数値情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土数値情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-2" class="init-bottom">位置参照情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">位置参照情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-3" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土調査</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-4" class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="#">ウェブマッピングシステムとは</a></li>
+            <li><a href="#">ウェブマッピングシステムを起動</a></li>
+            <li><a href="#">ヘルプ</a></li>
+          </ul>
+      </li>
+    </ul>
+  </div>
+  -->
+
+  <div class="main-menu__L">
+    <ul class="main-menu">
+      <li class="menu__single">
+        <a class="init-bottom">国土数値情報</a>
+        <ul class="menu__second-level">
+            <li><a href="/ksj/index.html">データダウンロード</a></li>  
+            <li><a href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>            
+            <li><a href="/ksj/ksj.html">国土数値情報とは</a></li>
+            <li><a href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+            <li><a href="/ksj_news.html">新着情報</a></li>
+            <li><a href="/ksj_error.html">修正情報</a></li>
+            <li><a href="/ksj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__single">
+        <a class="init-bottom">
+          位置参照情報
+          <a class="init-bottom__l2">ジオコーディング（住所⇔緯度経度）</a>
+        </a>
+          <ul class="menu__second-level">
+            <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">データダウンロード</a></li>  
+            <li><a href="/isj/index.html">位置参照情報とは</a></li>
+            <li><a href="/isj_news.html">新着情報</a></li>
+            <li><a href="/isj_error.html">修正情報</a></li>
+            <li><a href="/isj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+      
+      <!--
+      <li class="menu__single">
+        <a href="/kokjo_news.html" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>  
+            <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+            <li><a href="/kokjo_news.html">新着情報</a></li>
+          </ul>
+      </li>-->
+
+      
+      <li class="menu__multi">
+        <a class="init-bottom">国土調査
+        <a class="init-bottom__l2">土地分類調査・水調査</a>
+        </a>
+        <ul class="menu__second-level">
+          <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>
+          <li><a href="/kokjo/inspect/landclassification/download.html">GISデータのダウンロード</a></li>
+          <li>
+            <a class="init-right">国土調査とは</a>
+            <ul class="menu__third-level">
+                <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+                <li><a href="/kokjo/inspect/landclassification/index.html">土地分類調査・水調査の概要</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">土地分類調査</a>
+            <ul class="menu__third-level">
+            <li><a href="/kokjo/inspect/landclassification/land/l_national_map_5-1.html">5万分の1都道府県土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1.html">20万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_50-1.html">50万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_det.html">土地分類調査（細部調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/land_history_2011/index_tile.html">土地履歴調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1-hozen.html">20万分の1土地保全基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_d.html">災害類型別土地保全調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_v.html">土地分類基本調査（垂直調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/chikei_bunrui.html">地形分類図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/saigai_rireki.html">災害履歴図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/tochi_riyou.html">土地利用図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/hyousou_chisitsu.html">表層地質図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/dojyou.html">土壌図から選ぶ</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">水調査</a>
+            <ul class="menu__third-level">
+              <li><a href="/kokjo/inspect/inspect.html#suikei">表流水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map.html"> ○主要水系調査（更新調査：2003年～）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_p.html"> ○主要水系調査（1966年～2002年）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_pref.html">○都道府県水調査</a></li>
+              <li><a href="/kokjo/inspect/inspect.html#suikei">地下水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/f9_exp.html">○全国地下水資料台帳</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_ug.html">○地下水の見える化調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_cw.html">○地下水マップ</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+
+
+      <li class="menu__single">
+        <a class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+            <li><a href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+            <li><a href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+          </ul>
+      </li>
+
+
+
+    </ul>
+  </div>
+
+
+</header>
+<!-- モーダル本体 -->
+<div class="modal-container">
+  <div class="modal-body">
+    <!-- 閉じるボタン -->
+    <div class="close_btn_X">×</div>
+    <div class="modal-close btn waves-effect waves-light indigo btn-small">スキップする</div>
+    <!-- <div class="modal-close btn waves-effect waves-light indigo btn-small">ダウンロードへ進む</div> -->
+    
+    <!-- モーダル内のコンテンツ -->
+    <div class="modal-content">
+      <iframe src="https://docs.google.com/forms/d/1-J1_3_NPwYy8cpH7yfwRlKa5iYaN9zw6S4ng4e0PuEs/viewform?usp=sf_link" 
+        width="98%" 
+        height="600"
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0">
+      </iframe> 
+    </div>
+  </div>
+</div>		<main>
+			<div class="container">
+				<div class="breadcrumb-list">
+					<a class="breadcrumb" href="../../../index.html">TOP</a>
+					<a class="breadcrumb" href="../../index.html">国土数値情報</a>
+					<a class="breadcrumb" href="#!">空港データ</a>
+				</div>
+				<div class="col s12 center">
+					<p class="left-align light">データのダウンロード（2.各データ詳細）<br>
+						選択したデータ項目は、国土数値情報　空港データ　です。<br>
+						最新のデータはデータ作成年度 2021年度（令和3年度）版です。データ詳細は<a href="/ksj/gml/datalist/KsjTmplt-C28-2021.html" target="brank_">こちら</a><br>
+						データ作成年度：2020年度（令和2年度）～2014年度（平成26年度）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-C28-2020.html" target="brank_">こちら</a><br>
+						データ作成年度：2013年度（平成25年度）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-C28-2013.html" target="brank_">こちら</a><br>
+						データ作成年度：2012年度（平成24年度）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-C28-2012.html" target="brank_">こちら</a><br>
+						データ作成年度：2004年度（平成16年度）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-C28-2004.html" target="brank_">こちら</a></p>
+				</div>
+				<ul class="collapsible">
+					<li class="active">
+						<div class="collapsible-header blue darken-4">
+							<p class="white-text">空港　2004年度（平成16年度）版<i class="material-icons">arrow_drop_down</i>
+							</p>
+						</div>
+						<div class="collapsible-body">
+							<table class="tablelist responsive-table">
+								<tbody>
+									<tr>
+										<th>更新履歴</th>
+										<td></td>
+									</tr>
+									<tr>
+										<th>内容</th>
+										<td>全国の公共用空港・飛行場について、範囲（面）、標点位置（点）、ターミナルビル位置（点）、種別（空港整備法に基づく第一種～第三種空港、共用飛行場等）、名称、設置者・管理者、特定飛行場指定状況等を整備したものである。</td>
+									</tr>
+									<tr>
+										<th>データ作成年度</th>
+										<td>2004年度（平成16年度）　（作成時点：2005年（平成17年）4月1日）</td>
+									</tr>
+									<tr>
+										<th>関連する法律</th>
+										<td>空港整備法</td>
+									</tr>
+									<tr>
+										<th>原典資料</th>
+										<td>2万5千分の1地形図（国土地理院）、管理状況調書（国土交通省）、航空会社時刻表、空港設置管理者の公開資料（公式ホームページ等）、数字でみる航空（国土交通省航空局監修・航空振興財団発行：2004）、全国空港ターミナルビル要覧（社・全国空港ビル協会：2004年度（平成16年度）版）、航空統計要覧（財・日本航空協会：2004年（平成16年）版）、日本の空港（社・日本航空技術協会：05/2/25改訂）、関係法令</td>
+									</tr>
+									<tr>
+										<th>作成方法</th>
+										<td>2万5千分の1地形図を基図とし、空港の形状、ターミナル及び標点の位置を取得し作成した。</td>
+									</tr>
+									<tr>
+										<th>
+											<a href="/ksj/other/agreement_02.html" target="_blank">このデータの使用許諾条件</a>
+										</th>
+										<td>商用可</td>
+									</tr>
+									<tr>
+										<th>座標系</th>
+										<td>JGD2000 / （B, L）</td>
+									</tr>
+									<tr>
+										<th>データ形状</th>
+										<td>面、点</td>
+									</tr>
+								</tbody>
+							</table>
+							<div class="row rowReset">
+								<div class="col s6 colReset">
+									<table class="responsive-table">
+										<tbody>
+											<tr>
+												<th>データ構造</th>
+											</tr>
+											<tr>
+												<td>
+													<a href="./img/C28-1.gif" target="_blank" title="拡大表示">
+														<img alt="データ構造" class="responsive-img" src="./img/C28-1.gif">
+													</a>
+													<br>《拡大表示するには図をクリックしてください》</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="col s6">
+									<table class="responsive-table">
+										<tbody>
+											<tr>
+												<th>イメージ</th>
+											</tr>
+											<tr>
+												<td>
+													<img alt="イメージ" class="responsive-img" src="./img/C28-2.jpg">
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<table class="tablelist responsive-table">
+								<tbody>
+									<tr>
+										<th rowspan="2">地物情報</th>
+										<th>地物名</th>
+										<th colspan="2">説明</th>
+									</tr>
+									<tr>
+										<td>空港</td>
+										<td colspan="2">公共用空港・飛行場</td>
+									</tr>
+									<tr>
+										<th rowspan="18">属性情報</th>
+										<th>属性名</th>
+										<th>説明</th>
+										<th>属性の型</th>
+									</tr>
+									<tr>
+										<td>場所</td>
+										<td>空港区域の位置</td>
+										<td>曲面型（GM_Surface）</td>
+									</tr>
+									<tr>
+										<td>行政区域コード</td>
+										<td>都道府県コードと市区町村コードからなる、行政区を特定するためのコード</td>
+										<td>コードリスト「行政コード」</td>
+									</tr>
+									<tr>
+										<td>空港コード</td>
+										<td>各行政区域で一意となるよう連番で定義する二桁のコード</td>
+										<td>整数型</td>
+									</tr>
+									<tr>
+										<td>種別</td>
+										<td>空港の種類による区別。</td>
+										<td>列挙型（空港整備法に基づく第一種空港=1、空港整備法に基づく第二種空港=2、<br>空港整備法に基づく第三種空港=3、自衛隊、米軍との共用飛行場=4、その他の公共飛行場=5）</td>
+									</tr>
+									<tr>
+										<td>供用中・建設中の区別</td>
+										<td>空港が供用されているか建設中かの区別。</td>
+										<td>列挙型（供用中=1、建設中=2）</td>
+									</tr>
+									<tr>
+										<td>名称</td>
+										<td>空港の呼称。</td>
+										<td>文字列型</td>
+									</tr>
+									<tr>
+										<td>設置者</td>
+										<td>空港を設立した組織。</td>
+										<td>コードリスト「<a href="/ksj/gml/codelist/InstallAdminCd.html" target="_blank">設置者・管理者コード</a>」</td>
+									</tr>
+									<tr>
+										<td>管理者</td>
+										<td>空港を管理している組織。</td>
+										<td>コードリスト「<a href="/ksj/gml/codelist/InstallAdminCd.html" target="_blank">設置者・管理者コード</a>」</td>
+									</tr>
+									<tr>
+										<td>特定飛行場の指定状況</td>
+										<td>法律等によって特定の指定を受けているかどうかの区別。</td>
+										<td>列挙型（「公共用飛行場周辺における航空機騒音による障害の防止等に関する法律」に基づく特定飛行場で、かつ周辺整備空港に指定されている場合=1、周辺整備空港に指定されていない特定飛行場=2、特定飛行場以外=3）</td>
+									</tr>
+									<tr>
+										<td>運用時間（開始）</td>
+										<td>1日のうちで、空港の運用が開始する時刻。</td>
+										<td>順序型（整数型の配列）<br>記述例）　7 30　（7時30分の場合）<br>記述例）　0 0　（0時0分の場合）<br>※運用時間が24時間の場合、開始時間は0時0分とする。</td>
+									</tr>
+									<tr>
+										<td>運用時間（終了）</td>
+										<td>1日のうちで、空港の運用が終了する時刻。</td>
+										<td>順序型（整数型の配列）<br>記述例）　21 30　（21時30分の場合）<br>記述例）　24 0　（24時0分の場合）<br>※運用時間が24時間の場合、終了時刻は24時0分とする。</td>
+									</tr>
+									<tr>
+										<td>定期便の有無</td>
+										<td>当該空港に定期便があるかどうかの区別。</td>
+										<td>コードリスト「<a href="/ksj/gml/codelist/RegularFlightCd.html" target="_blank">定期便の有無コード</a>」</td>
+									</tr>
+									<tr>
+										<th>関連役割名</th>
+										<th>説明</th>
+										<th>関連先</th>
+									</tr>
+									<tr>
+										<td>ターミナルビル</td>
+										<td>当該空港に存在するターミナルビル。</td>
+										<td>地物「ターミナルビル」</td>
+									</tr>
+									<tr>
+										<td>標点</td>
+										<td>当該空港に存在する標点。</td>
+										<td>地物「標点」</td>
+									</tr>
+									<tr>
+										<td>滑走路</td>
+										<td>当該空港に存在する滑走路。</td>
+										<td>地物「滑走路」</td>
+									</tr>
+									<tr>
+										<td>調査内容</td>
+										<td>1日当たり着陸回数や乗降客数等、当該空港について行われる毎年の調査の内容。</td>
+										<td>タイプ型「調査内容」</td>
+									</tr>
+									<tr>
+										<th rowspan="2">地物情報</th>
+										<th>地物名</th>
+										<th colspan="2">説明</th>
+									</tr>
+									<tr>
+										<td>ターミナルビル</td>
+										<td colspan="2"></td>
+									</tr>
+									<tr>
+										<th rowspan="2">属性情報</th>
+										<th>属性名</th>
+										<th>説明</th>
+										<th>属性の型</th>
+									</tr>
+									<tr>
+										<td>地点</td>
+										<td>ターミナルビルの位置</td>
+										<td>点型（GM_Point）</td>
+									</tr>
+									<tr>
+										<th rowspan="2">地物情報</th>
+										<th>地物名</th>
+										<th colspan="2">説明</th>
+									</tr>
+									<tr>
+										<td>標点</td>
+										<td colspan="2"></td>
+									</tr>
+									<tr>
+										<th rowspan="2">属性情報</th>
+										<th>属性名</th>
+										<th>説明</th>
+										<th>属性の型</th>
+									</tr>
+									<tr>
+										<td>地点</td>
+										<td>標点の位置</td>
+										<td>点型（GM_Point）</td>
+									</tr>
+									<tr>
+										<th rowspan="2">地物情報</th>
+										<th>地物名</th>
+										<th colspan="2">説明</th>
+									</tr>
+									<tr>
+										<td>滑走路</td>
+										<td colspan="2"></td>
+									</tr>
+									<tr>
+										<th rowspan="3">属性情報</th>
+										<th>属性名</th>
+										<th>説明</th>
+										<th>属性の型</th>
+									</tr>
+									<tr>
+										<td>滑走路延長</td>
+										<td>滑走路の長さ。単位は「m」とする。</td>
+										<td>整数型</td>
+									</tr>
+									<tr>
+										<td>滑走路幅</td>
+										<td>滑走路の幅。単位は「m」とする。</td>
+										<td>整数型</td>
+									</tr>
+									<tr>
+										<th rowspan="2">地物情報</th>
+										<th>地物名</th>
+										<th colspan="2">説明</th>
+									</tr>
+									<tr>
+										<td>調査内容</td>
+										<td colspan="2"></td>
+									</tr>
+									<tr>
+										<th rowspan="5">属性情報</th>
+										<th>属性名</th>
+										<th>説明</th>
+										<th>属性の型</th>
+									</tr>
+									<tr>
+										<td>調査年</td>
+										<td>調査を行った時期</td>
+										<td>時間型（TM_Instant） ※昭和や平成などの元号で、「年」のみを記述する。</td>
+									</tr>
+									<tr>
+										<td>１日あたりの着陸回数</td>
+										<td></td>
+										<td>整数型</td>
+									</tr>
+									<tr>
+										<td>１日あたりの乗降客数</td>
+										<td></td>
+										<td>整数型</td>
+									</tr>
+									<tr>
+										<td>年間閉鎖日</td>
+										<td></td>
+										<td>整数型</td>
+									</tr>
+									<tr>
+										<th>主な品質情報</th>
+										<td colspan="3">■ 完全性/過剰・漏れ：　全数検査、誤率0%<br>
+											2005年（平成17年）4月1時点にある空港・ターミナルデータと比較。<br>
+											※2005年（平成17年）4月1日時点で未供用の空港のうち、神戸、北九州、静岡、新種子島、百里については、標点に関するデータのみ作成。<br>
+											■ 位置正確度/絶対正確度（外部正確度）：　全数検査、誤率0%<br>
+											数値地図25,000（空間データ基盤）と比較。ただし、空港新設・滑走路延長・ターミナル移転などにより修正した場合を除く。<br>
+											■ 分類正確度/非定量的属性の正しさ<br>
+											各属性に対して、2005年（平成17年）4月1日時点の情報が反映されているかを比較。</td>
+									</tr>
+									<tr>
+										<th>データフォーマット（符号化）</th>
+										<td colspan="3">・JPGISに準拠した符号化（GML形式）。詳細は<a href="/ksj/gml/product_spec/KS-PS-C28-v1_0.pdf" target="_blank">製品仕様書</a>内の符号化規則を参照してください。<br>・SHAPE形式。<a href="/ksj/gml/shape_property_table.xls" target="_blank">SHAPEファイルの属性について</a>
+										</td>
+									</tr>
+									<tr>
+										<th>国土情報ウェブマッピングシステムへの登録</th>
+										<td colspan="3">
+											<a href="https://nlftp.mlit.go.jp/webmapc/mapmain.html" target="_blank">登録あり</a>：
+											<a href="/ksj/gml/datalist/KsjTmplt-C28-2020.html" target="_blank">2020年度（令和2年度）版</a>のデータです。
+										</td>
+									</tr>
+									<tr>
+										<th>識別子</th>
+										<td colspan="3">C28</td>
+									</tr>
+									<tr>
+										<th>その他の情報</th>
+										<td colspan="3">各データのメタデータについては、ダウンロードする際に確認できます。またダウンロードしたファイルにも添付されています。</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</main>
+		<p id="pageTop">
+			<a href="#">
+				<i class="Medium material-icons">vertical_align_top</i>
+			</a>
+		</p>
+		<!-- フッターー -->   
+		  <footer class="page-footer blue lighten-5">
+    <div class="container">
+      <div class="row">
+      <!--<div class="col l4 offset-l2 s12">-->
+      <div class="col">
+
+<div class="footer__grid-container">
+<ul id="footer__gird-item1">
+  <li><h5 class="grey-text text-darken-3 footer__grid-title">国土数値情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/index.html">国土数値情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">国土数値情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_news.html">国土数値情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_error.html">国土数値情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/error-report/error-report.html">国土数値情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item2">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">位置参照情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj/index.html">位置参照情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_news.html">位置参照情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item3">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">国土調査</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">国土調査 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/landclassification/download.html">国土調査 GISデータのダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/kokjo.html">国土調査とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">土地分類調査</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo_news.html">水調査</a></li>
+</ul>
+<ul id="footer__gird-item4">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">地図で見る</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+</ul>
+<ul id="footer__gird-item5">
+            <li><h5 class="grey-text text-darken-3 g-footer-title">その他</h5></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/i_news.html">重要なお知らせ一覧</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">初めての方へ</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/faq.html">よくある質問（FAQ）</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/agreement.html">利用規約</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html">QGIS活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html#tableau-manual">Tableau活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/event/event.html">イベント特集</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/manual.html">QGISでの国土数値情報利用方法</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/privacy.html">プライバシーポリシー</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/inquiry.html">お問合せ</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/sitemap.html">サイトマップ</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/link.html">リンク</a></li>
+          </ul>
+          </div>
+
+</div>
+      </div>
+    </div>
+
+    <div class="footer-copyright  blue darken-4">
+      <div class="container white-text"> All rights reserved. Copyright(c) National Land Information Division, National Spatial Planning and Regional Policy Bureau, MLIT of Japan </div>
+    </div>
+
+  </footer>
+
+		<script src="../../../ksj/js/gis.js" type="text/javascript">
+  
+		</script>
+	<script type="text/javascript" async="async" src="/__zenedge/assets/f.js?v=1674207422"></script><script>(function () { var v = 1752561187 * 3.1415926535898; v = Math.floor(v); document.cookie = "__zjc6174="+v+"; expires=Tue, 15 Jul 2025 06:34:18 UTC; path=/"; })()</script></body>
+</html>

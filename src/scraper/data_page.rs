@@ -15,9 +15,12 @@ use super::year_parser::{parse_recency, parse_yearly_version_from_line};
 #[derive(Debug, Serialize)]
 pub struct DataPage {
     pub url: Url,
+
     #[serde(skip)]
     pub unfiltered_items: Vec<DataItem>,
     pub metadata: DataPageMetadata,
+
+    /// Previous versions of the same dataset.
     pub yearly_versions: Vec<YearlyVersion>,
 }
 
@@ -599,7 +602,7 @@ mod tests {
     async fn test_extract_yearly_versions() {
         let (_server, base_url_fn) = create_mock_server().await;
         let base_url = base_url_fn();
-        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-N03-2024.html");
+        let url = fixture_url(&base_url, "/ksj/gml/datalist/KsjTmplt-N03-2025.html");
 
         let page = DataPage::scrape(&url, &[]).await.unwrap();
         assert!(!page.yearly_versions.is_empty());

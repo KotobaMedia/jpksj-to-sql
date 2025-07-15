@@ -5,4 +5,4 @@ alwaysApply: true
 ---
 # Rust Coding Style
 
-- Avoid nesting. For example, instead of `if let Some(x) = y`, we can do `let Some(x) = y else { return Err(...) }` to return early and keep the nest count down.
+- Avoid nesting. For example, instead of `if let Some(x) = y`, we can do `let Some(x) = y else { return Err(...) }` to return early and keep the nest count down. Remember, the final exit of a function should always be an Ok.
