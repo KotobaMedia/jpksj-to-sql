@@ -14,7 +14,7 @@ async fn get_all_data_urls(item: &DataItem) -> Result<Vec<Url>> {
     let mut urls = vec![item.url.clone()];
 
     // Use the existing DataPage scraper to find other years
-    match DataPage::scrape(&item.url).await {
+    match DataPage::scrape(&item.url, &[]).await {
         Ok(data_page) => {
             for selection in data_page.yearly_versions {
                 urls.push(selection.url);

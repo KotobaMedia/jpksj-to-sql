@@ -30,9 +30,10 @@ pub struct Cli {
     pub filter_identifiers: Option<Vec<String>>,
 
     /// 取得するデータセットの年（例: 2019）
-    /// 指定しない場合は最新のデータセットが使用されます
-    #[arg(long)]
-    pub year: Option<u32>,
+    /// 指定しない場合はすべての年のデータセットが使用されます
+    /// 複数指定する場合は `,` で区切ってください
+    #[arg(long, value_delimiter = ',')]
+    pub year: Option<Vec<u32>>,
 }
 
 pub fn main() -> Cli {

@@ -8,6 +8,7 @@ use crate::downloader::path_for_url;
 pub mod data_page;
 mod download_queue;
 pub mod initial;
+pub mod ref_parser;
 mod table_read;
 
 #[cfg(test)]
@@ -36,7 +37,7 @@ impl fmt::Display for Dataset {
 pub struct Scraper {
     skip_dl: bool,
     filter_identifiers: Option<Vec<String>>,
-    year: Option<u32>,
+    year: Option<Vec<u32>>,
 }
 
 impl Scraper {
@@ -56,7 +57,11 @@ impl Scraper {
                 }
             }
 
-            let page_res = data_page::DataPage::scrape(&initial_item.url).await;
+            let page_res = data_page::DataPage::scrape(
+                &initial_item.url,
+                &self.year.clone().unwrap_or(vec![]),
+            )
+            .await;
             if let Err(err) = page_res {
                 println!("[ERROR, skipping...] {:?}", err);
                 continue;

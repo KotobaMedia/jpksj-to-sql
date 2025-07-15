@@ -3,6 +3,7 @@ name = "jpksj-to-sql"
 version = "0.2.0"
 edition = "2021"
 license = "MIT"
+default-run = "jpksj-to-sql"
 
 [[bin]]
 name = "jpksj-to-sql"
