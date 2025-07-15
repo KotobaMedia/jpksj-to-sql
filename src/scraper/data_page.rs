@@ -3,7 +3,6 @@ use std::ops::RangeInclusive;
 
 use anyhow::{anyhow, Context, Result};
 use bytesize::ByteSize;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use scraper::{selectable::Selectable, Html, Selector};
 use serde::Serialize;
@@ -11,21 +10,7 @@ use url::Url;
 
 use super::ref_parser::{parse_ref_from_url, RefType};
 use super::table_read::{parse_table, parsed_to_string_array};
-
-// Compile the regex once for efficiency.
-// This regex looks for one or more digits at the very start of the string, immediately followed by '年'.
-static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap());
-
-// Regex for extracting year ranges and URLs from data selection lines
-// Supports patterns like:
-// - "最新のデータは2021年"
-// - "最新のデータはデータ作成年度 2021年度（令和3年度）版です"
-// - "データ基準年：2020年"
-// - "データ作成年度：2020年度（令和2年度）～2014年度（平成26年度）版"
-// - "データ作成年度：2013年度（平成25年度）版"
-static YEAR_RANGE_REGEX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"(データ基準年：|最新のデータは(?:データ作成年度\s*)?|データ作成年度：)(\d{4})(年度?|年)(～?(\d{4})(年度?|年))?").unwrap()
-});
+use super::year_parser::{parse_recency, parse_yearly_version_from_line};
 
 #[derive(Debug, Serialize)]
 pub struct DataPage {
@@ -442,81 +427,15 @@ impl DataPage {
                     .trim()
                     .to_string();
 
-                // Try to match the improved year range pattern first
-                if let Some(captures) = YEAR_RANGE_REGEX.captures(&line_text) {
-                    let start_year = captures
-                        .get(2)
-                        .and_then(|m| m.as_str().parse::<u32>().ok())
-                        .ok_or_else(|| anyhow!("failed to parse start year from: {}", line_text))?;
-
-                    let end_year = captures
-                        .get(5)
-                        .and_then(|m| m.as_str().parse::<u32>().ok())
-                        .unwrap_or(start_year);
-
-                    let a_selector = Selector::parse("a").unwrap();
-                    let url = line_document
-                        .select(&a_selector)
-                        .next()
-                        .and_then(|a| a.value().attr("href"))
-                        .and_then(|href| base_url.join(href).ok());
-
-                    let url = if url.is_none() && line_text.contains("最新のデータは") {
-                        base_url.clone()
-                    } else {
-                        url.ok_or_else(|| anyhow!("no URL found in line: {}", line_text))?
-                    };
-
-                    selections.push(YearlyVersion {
-                        year: start_year..=end_year,
-                        url,
-                    });
-                } else if line_text.contains("データ作成年度：") {
-                    // Handle comma-separated years pattern
-                    if let Some(years) = Self::extract_multiple_years(&line_text) {
-                        let a_selector = Selector::parse("a").unwrap();
-                        let url = line_document
-                            .select(&a_selector)
-                            .next()
-                            .and_then(|a| a.value().attr("href"))
-                            .and_then(|href| base_url.join(href).ok())
-                            .ok_or_else(|| anyhow!("no URL found in line: {}", line_text))?;
-
-                        // Create a range from min to max year
-                        let min_year = *years.iter().min().unwrap();
-                        let max_year = *years.iter().max().unwrap();
-
-                        selections.push(YearlyVersion {
-                            year: min_year..=max_year,
-                            url,
-                        });
-                    }
+                // Try to parse yearly version from the line
+                if let Some(yearly_version) =
+                    parse_yearly_version_from_line(&line_text, &line_document, base_url)
+                {
+                    selections.push(yearly_version);
                 }
             }
         }
         Ok(selections)
-    }
-
-    /// Extracts multiple years from comma-separated year lists
-    fn extract_multiple_years(text: &str) -> Option<Vec<u32>> {
-        let mut years = Vec::new();
-
-        // Extract all 4-digit numbers followed by 年度 or 年
-        let year_pattern = Regex::new(r"(\d{4})年度?").unwrap();
-
-        for capture in year_pattern.captures_iter(text) {
-            if let Some(year_match) = capture.get(1) {
-                if let Ok(year) = year_match.as_str().parse::<u32>() {
-                    years.push(year);
-                }
-            }
-        }
-
-        if years.is_empty() {
-            None
-        } else {
-            Some(years)
-        }
     }
 }
 
@@ -551,31 +470,6 @@ pub struct AttributeMetadata {
 pub struct DataPageMetadata {
     pub fundamental: HashMap<String, String>,
     pub attribute: HashMap<String, AttributeMetadata>,
-}
-
-/// Extracts the numeric year from a field formatted like "2006年（平成18年）".
-/// If the field does not match, returns None.
-fn extract_year_from_field(field: &str) -> Option<u32> {
-    YEAR_REGEX
-        .captures(field)
-        .and_then(|caps| caps.get(1))
-        .and_then(|m| m.as_str().parse::<u32>().ok())
-}
-
-/// Determines the recency value for an item, preferring the `year` field.
-/// Falls back to `nendo` if necessary.
-fn parse_recency(item: &DataItem) -> Option<u32> {
-    if let Some(ref y) = item.year {
-        if let Some(year) = extract_year_from_field(y) {
-            return Some(year);
-        }
-    }
-    if let Some(ref n) = item.nendo {
-        if let Some(year) = extract_year_from_field(n) {
-            return Some(year);
-        }
-    }
-    None
 }
 
 #[cfg(test)]
@@ -718,9 +612,12 @@ mod tests {
                 selection.year.end(),
                 selection.url
             );
-        }
-        for selection in &page.yearly_versions {
-            assert!(*selection.year.start() > 1900 && *selection.year.start() < 2100);
+
+            if i == page.yearly_versions.len() - 1 {
+                assert!(*selection.year.start() == 0 && *selection.year.end() == 2015);
+            } else {
+                assert!(*selection.year.start() > 2000 && *selection.year.start() < 2100);
+            }
             assert!(selection.url.to_string().starts_with("http"));
         }
     }

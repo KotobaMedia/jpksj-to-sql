@@ -10,6 +10,7 @@ mod download_queue;
 pub mod initial;
 pub mod ref_parser;
 mod table_read;
+pub mod year_parser;
 
 #[cfg(test)]
 mod test_helpers;
