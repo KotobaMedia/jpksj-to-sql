@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta content="ja" http-equiv="content-language">
+	<meta content="width=device-width" name="viewport">
+	<meta content="telephone=no" name="format-detection">
+	<meta content="" name="description">
+	<meta content="" name="keyword">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="../../../ksj/css/materialize.css" media="screen,projection" rel="stylesheet" type="text/css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js">
+
+	</script>
+	<link href="../../../ksj/css/style.css" media="screen,projection" rel="stylesheet" type="text/css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="text/javascript">
+
+	</script>
+	<title>国土数値情報 | 高速道路時系列データ</title>
+
+	<!-- Google Tag Manager -->
+	<script>(function (w, d, s, l, i) {
+			w[l] = w[l] || []; w[l].push({
+				'gtm.start':
+					new Date().getTime(), event: 'gtm.js'
+			}); var f = d.getElementsByTagName(s)[0],
+				j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+					'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+		})(window, document, 'script', 'dataLayer', 'GTM-KBHCLWJ');</script>
+	<!-- End Google Tag Manager -->
+
+		<link rel="stylesheet" href="../../../ksj/css/datatables.min.css">
+		<script src="../../../ksj/js/datatables.min.js"></script>
+		<script src="../../../ksj/js/jquery.ex-table-filter.js"></script>
+</head>
+
+
+<body>
+
+	<!-- Google Tag Manager (noscript) -->
+	<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KBHCLWJ" height="0" width="0"
+			style="display:none;visibility:hidden"></iframe></noscript>
+	<!-- End Google Tag Manager (noscript) -->
+
+	<!-- ヘッダー -->
+	
+  <header class="gmenu">
+
+
+    <nav class="nav-extended blue darken-3">
+      <div class="nav-wrapper">
+        <div>
+          <span class="gmenu__logo-M">
+            <img class="img__logo-M" src="/ksj/img/logo.png" alt="国土交通省">
+          </span>
+        </div>
+        <a class="gmenu__title" href="/">国土数値情報ダウンロードサイト</a>
+        <a data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
+
+        <ul id="nav-mobile" class="right hide-on-med-and-down gmenu__title-line">
+          <li><a class="nav_padding_10" href="/first.html">初めての方へ</a></li>
+          <li><a class="nav_padding_10" href="/ksj/case_studies.html">活用事例</a></li>
+          <li><a class="nav_padding_10" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">アンケート</a></li>
+          <li><a class="nav_padding_10" href="/ksj/other/other.html">その他</a></li>
+          <li><a class="waves-effect waves-light btn" "nav_padding_10" href="/ksj/inquiry.html">お問合せ</a></li>
+          <!-- 検索窓　
+          <li>
+            <form class="search-form" action="https://www.google.co.jp/cse" name="cse-search-box" target="_blank">
+              <input value="6768d71d594cb4140" name="cx" type="hidden">
+              <input value="UTF-8" name="ie" type="hidden">
+              <input class="search-input" size="16" name="q" type="text" placeholder="サイト内を検索">
+              <button class="search-btn blue darken-3" value="" name="sa"><i class="material-icons">search</i></button>
+            </form>
+          </li>-->
+          <div>
+            <span class="gmenu__logo">
+              <img class="img__logo" src="/ksj/img/logo.png" alt="国土交通省">
+            </span>
+          </div>
+        </ul>
+
+
+      </div>
+    </nav>
+
+
+    <ul class="sidenav collection with-header" id="mobile-demo"> 
+    <li><a href="/ksj/index.html">国土数値情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/kokjo/inspect/inspect.html">国土調査<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/webmapc/mapmain.html">地図で見る<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a class="collection-item" href="/first.html">初めての方へ</a></li>
+        <li><a class="collection-item" href="/ksj/case_studies.html">活用事例</a></li>
+        <li><a class="collection-item" href="/ksj/inquiry.html">お問合せ</a></li>
+        <li><a class="collection-item" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li>
+        <li><a class="collection-item" href="/ksj/other/other.html">その他</a></li>
+    </ul>
+
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+  </header>
+
+
+<header class="gmenu__contents-line">
+  <!-- mega size menu -->
+  <!--
+  <div>
+    <ul class="main-menu">       
+      <li class="menu__mega">
+        <a href="#con-1" class="init-bottom">国土数値情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土数値情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-2" class="init-bottom">位置参照情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">位置参照情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-3" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土調査</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-4" class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="#">ウェブマッピングシステムとは</a></li>
+            <li><a href="#">ウェブマッピングシステムを起動</a></li>
+            <li><a href="#">ヘルプ</a></li>
+          </ul>
+      </li>
+    </ul>
+  </div>
+  -->
+
+  <div class="main-menu__L">
+    <ul class="main-menu">
+      <li class="menu__single">
+        <a class="init-bottom">国土数値情報</a>
+        <ul class="menu__second-level">
+            <li><a href="/ksj/index.html">データダウンロード</a></li>  
+            <li><a href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>            
+            <li><a href="/ksj/ksj.html">国土数値情報とは</a></li>
+            <li><a href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+            <li><a href="/ksj_news.html">新着情報</a></li>
+            <li><a href="/ksj_error.html">修正情報</a></li>
+            <li><a href="/ksj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__single">
+        <a class="init-bottom">
+          位置参照情報
+          <a class="init-bottom__l2">ジオコーディング（住所⇔緯度経度）</a>
+        </a>
+          <ul class="menu__second-level">
+            <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">データダウンロード</a></li>  
+            <li><a href="/isj/index.html">位置参照情報とは</a></li>
+            <li><a href="/isj_news.html">新着情報</a></li>
+            <li><a href="/isj_error.html">修正情報</a></li>
+            <li><a href="/isj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+      
+      <!--
+      <li class="menu__single">
+        <a href="/kokjo_news.html" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>  
+            <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+            <li><a href="/kokjo_news.html">新着情報</a></li>
+          </ul>
+      </li>-->
+
+      
+      <li class="menu__multi">
+        <a class="init-bottom">国土調査
+        <a class="init-bottom__l2">土地分類調査・水調査</a>
+        </a>
+        <ul class="menu__second-level">
+          <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>
+          <li><a href="/kokjo/inspect/landclassification/download.html">GISデータのダウンロード</a></li>
+          <li>
+            <a class="init-right">国土調査とは</a>
+            <ul class="menu__third-level">
+                <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+                <li><a href="/kokjo/inspect/landclassification/index.html">土地分類調査・水調査の概要</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">土地分類調査</a>
+            <ul class="menu__third-level">
+            <li><a href="/kokjo/inspect/landclassification/land/l_national_map_5-1.html">5万分の1都道府県土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1.html">20万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_50-1.html">50万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_det.html">土地分類調査（細部調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/land_history_2011/index_tile.html">土地履歴調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1-hozen.html">20万分の1土地保全基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_d.html">災害類型別土地保全調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_v.html">土地分類基本調査（垂直調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/chikei_bunrui.html">地形分類図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/saigai_rireki.html">災害履歴図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/tochi_riyou.html">土地利用図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/hyousou_chisitsu.html">表層地質図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/dojyou.html">土壌図から選ぶ</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">水調査</a>
+            <ul class="menu__third-level">
+              <li><a href="/kokjo/inspect/inspect.html#suikei">表流水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map.html"> ○主要水系調査（更新調査：2003年～）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_p.html"> ○主要水系調査（1966年～2002年）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_pref.html">○都道府県水調査</a></li>
+              <li><a href="/kokjo/inspect/inspect.html#suikei">地下水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/f9_exp.html">○全国地下水資料台帳</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_ug.html">○地下水の見える化調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_cw.html">○地下水マップ</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+
+
+      <li class="menu__single">
+        <a class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+            <li><a href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+            <li><a href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+          </ul>
+      </li>
+
+
+
+    </ul>
+  </div>
+
+
+</header>
+<!-- モーダル本体 -->
+<div class="modal-container">
+  <div class="modal-body">
+    <!-- 閉じるボタン -->
+    <div class="close_btn_X">×</div>
+    <div class="modal-close btn waves-effect waves-light indigo btn-small">スキップする</div>
+    <!-- <div class="modal-close btn waves-effect waves-light indigo btn-small">ダウンロードへ進む</div> -->
+    
+    <!-- モーダル内のコンテンツ -->
+    <div class="modal-content">
+      <iframe src="https://docs.google.com/forms/d/1-J1_3_NPwYy8cpH7yfwRlKa5iYaN9zw6S4ng4e0PuEs/viewform?usp=sf_link" 
+        width="98%" 
+        height="600"
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0">
+      </iframe> 
+    </div>
+  </div>
+</div>	<main>
+		<div class="container">
+			<div class="breadcrumb-list">
+				<a class="breadcrumb" href="../../../index.html">TOP</a>
+				<a class="breadcrumb" href="../../index.html">国土数値情報</a>
+				<a class="breadcrumb" href="#!">高速道路時系列データ</a>
+			</div>
+			<div class="col s12 center">
+				<p class="left-align light">データのダウンロード（2.各データ詳細）<br>
+					選択したデータ項目は、国土数値情報　高速道路時系列データ　です。<br>
+					最新のデータはデータ基準年 2024年（令和6年）版です。データ詳細は<a href="/ksj/gml/datalist/KsjTmplt-N06-2024.html"
+						target="brank_">こちら</a><br>
+					データ基準年：2023年（令和5年）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-N06-2023.html"
+						target="brank_">こちら</a><br>
+					データ基準年：2022年～2021年（令和4年～令和3年）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-N06-2022.html"
+						target="brank_">こちら</a><br>
+					データ基準年：2020年～2015年（令和2年～平成27年）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-N06-2020.html"
+						target="brank_">こちら</a><br>
+					データ基準年：2014年～2011年（平成26年～平成23年）版のデータ詳細は<a href="/ksj/gml/datalist/KsjTmplt-N06-2014.html"
+						target="brank_">こちら</a>
+				</p>
+			</div>
+			<ul class="collapsible">
+				<li class="active">
+					<div class="collapsible-header blue darken-4">
+						<p class="white-text">高速道路時系列　2024年（令和6年）版<i class="material-icons">arrow_drop_down</i>
+						</p>
+					</div>
+					<div class="collapsible-body">
+						<table class="tablelist responsive-table">
+							<tbody>
+								<tr>
+									<th>更新履歴</th>
+									<td>2025年6月：2024年（令和6年）版に更新<br>
+										2024年6月：2023年（令和5年）版に更新<br>
+										2023年5月：2022年（令和4年）版に更新
+									</td>
+								</tr>
+								<tr>
+									<th>内容</th>
+									<td>全国の高速道路網の路線及び接続部について、路線名、地点名、供用開始年、供用更新年等などの情報を路線形状（線）、接続部位置（点）ごとに時系列的に整理したものである。
+										対象は、高速自動車国道、高速自動車国道に並行する自動車専用道路、一般国道の自動車専用道路、本州四国連絡高速道路、指定都市高速道路（首都高速道路、阪神高速道路、名古屋高速道路、広島高速道路、福岡・北九州高速道路）とする。
+									</td>
+								</tr>
+								<tr>
+									<th>データ基準年月日</th>
+									<td>2024年（令和6年）12月31日時点</td>
+								</tr>
+								<tr>
+									<th>関連する法律</th>
+									<td>国土開発幹線自動車道建設法（昭和32年法律第68号）</td>
+								</tr>
+								<tr>
+									<th>原典資料</th>
+									<td><!-- （令和3年）<br> -->
+										「高規格幹線道路供用予定一覧」「地域高規格道路供用予定一覧」（国土交通省道路局）<br>
+										高速道路関係のWebサイト情報、国土地理院「電子地形図（タイル）」
+									</td>
+								</tr>
+								<tr>
+									<th>作成方法</th>
+									<td><!-- （令和3年）<br> -->
+										国土交通省道路局作成の「高規格幹線道路供用予定一覧」「地域高規格道路供用予定一覧」に記載された供用予定情報に基づき、高速道路関係のWebサイト情報から更新箇所を抽出し、「電子地形図（タイル）」から形状・位置を取得して更新した。<br>
+									</td>
+								</tr>
+								<tr>
+									<th>
+										<a href="/ksj/other/agreement_01.html" target="_blank">このデータの使用許諾条件</a>
+									</th>
+									<td>
+										オープンデータ（CC_BY_4.0（一部制限））<br><br>
+										<b>【重要：データ利用時の注意事項】</b><br><br>
+										整備年度が2018年度（平成30年度）以降のものをそれぞれの最新年度の現況データとして使用する場合<br>
+										（例：2018年度整備データを2018年度時点の現況データとして使用する場合）<br>
+										：オープンデータ（CC_BY_4.0）
+										<br><br>時系列データとして使用する場合：非商用
+									</td>
+									<!-- <td> 
+										整備年度が2018年度（平成30年度）以降のものをそれぞれの最新年度の現況データとして使用する場合<br>-->
+										<!-- ：適用する利用規約に基づく（オープンデータ）<br> -->
+										<!-- （例：2018年度整備データを2018年度時点の現況データとして使用する場合）<br> 
+										：オープンデータ（CC_BY_4.0）
+										<br><br>時系列データとして使用する場合：非商用
+									</td>-->
+								</tr>
+								<tr>
+									<th>座標系</th>
+									<td>JGD2011 / （B, L）</td>
+								</tr>
+								<tr>
+									<th>データ形状</th>
+									<td>線、点</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="row rowReset">
+							<div class="col s6 colReset">
+								<table class="responsive-table">
+									<tbody>
+										<tr>
+											<th>データ構造</th>
+										</tr>
+										<tr>
+											<td>
+												<a href="./img/N06-4.png" target="_blank" title="拡大表示">
+													<img alt="データ構造" class="responsive-img" src="./img/N06-4.png">
+												</a>
+												<br>《拡大表示するには図をクリックしてください》
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="col s6">
+								<table class="responsive-table">
+									<tbody>
+										<tr>
+											<th>イメージ</th>
+										</tr>
+										<tr>
+											<td>
+												<a href="./img/N06-5.png" target="_blank" title="拡大表示">
+													<img alt="イメージ" class="responsive-img" src="./img/N06-5.png">
+												</a>
+												<br>《拡大表示するには図をクリックしてください》
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<table class="tablelist responsive-table">
+							<tbody>
+								<tr>
+									<th rowspan="2">地物情報</th>
+									<th>地物名</th>
+									<th colspan="2">説明</th>
+								</tr>
+								<tr>
+									<td>路線</td>
+									<td colspan="2">
+										高速自動車国道法における高速道路の形状で、以下の道路を対象としたもの。<br>高速自動車国道、高速自動車国道に並行する一般国道自動車専用道路、一般国道自動車専用道路、本州四国連絡高速道路、指定都市高速道路
+									</td>
+								</tr>
+								<tr>
+									<th rowspan="13">属性情報<br>（HighwaySection.shp）</th>
+									<th>属性名<br>（かっこ内はshp属性名）</th>
+									<th>説明</th>
+									<th>属性の型</th>
+								</tr>
+								<tr>
+									<td>路線</td>
+									<td>路線区間の位置</td>
+									<td>曲線型（GM_Curve）</td>
+								</tr>
+								<tr>
+									<td>供用開始年<br>（N06_001）</td>
+									<td>路線区間・接続部（IC・JCT）ごとの供用開始年（西暦）</td>
+									<td>時間型（TM_Instant）</td>
+								</tr>
+								<tr>
+									<td>設置期間（開始年）<br>（N06_002）</td>
+									<td>地物が設置（開業）された年</td>
+									<td>時間型（TM_Period〉</td>
+								</tr>
+								<tr>
+									<td>設置期間（終了年）<br>（N06_003）</td>
+									<td>地物が廃止（変更・廃止）された年の1年前の年。継続中の場合は9999</td>
+									<td>時間型（TM_Period〉</td>
+								</tr>
+								<tr>
+									<td>関係ID<br>（N06_004）</td>
+									<td>区間、接合部の属性が変更された場合の同一地物の時系列変化データであることを表すグループID（その他の情報欄に詳細を説明）</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>変遷ID<br>（N06_005）</td>
+									<td>同一年次に複数回属性が変更された場合の属性項目を表す識別子</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/HighwayTransitionCd.html"
+											target="_blank">変遷IDコード</a>」</td>
+								</tr>
+								<tr>
+									<td>変遷備考<br>（N06_006）</td>
+									<td>変遷IDで示した属性の内容を記述する</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>路線名<br>（N06_007）</td>
+									<td>高速道路の路線名</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>路線種別<br>（N06_008）</td>
+									<td>高速道路の種別</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/HighwayCatCd.html"
+											target="_blank">路線種別コード</a>」</td>
+								</tr>
+								<tr>
+									<td>供用状況<br>（N06_009）</td>
+									<td>当該路線が供用されている状況の区分</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/HighwayUseCd.html"
+											target="_blank">供用状況コード</a>」</td>
+								</tr>
+								<tr>
+									<td>車線数<br>（N06_010）</td>
+									<td>当該路線区間の車線数（上下線の合計）<br>不明の場合は999</td>
+									<td>整数型（Integer）</td>
+								</tr>
+								<tr>
+									<td>関係備考<br>（N06_011）</td>
+									<td>路線データについて、同一地物の時系列変化によってグループの変化があった場合の、主たる関係ID以外のその他の関係ID</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<th rowspan="2">地物情報</th>
+									<th>地物名</th>
+									<th colspan="2">説明</th>
+								</tr>
+								<tr>
+									<td>接合部</td>
+									<td colspan="2">
+										高速自動車国道法における接合部で、以下の道路を対象としたもの。<br>高速自動車国道、高速自動車国道に並行する一般国道自動車専用道路、一般国道自動車専用道路、本州四国連絡高速道路、指定都市高速道路
+									</td>
+								</tr>
+								<tr>
+									<th rowspan="10">属性情報<br>（Joint.shp）</th>
+									<th>属性名<br>（かっこ内はshp属性名）</th>
+									<th>説明</th>
+									<th>属性の型</th>
+								</tr>
+								<tr>
+									<td>地点</td>
+									<td>接合部（IC・JCT）の位置</td>
+									<td>点型（GM_Point）</td>
+								</tr>
+								<tr>
+									<td>供用開始年<br>（N06_012）</td>
+									<td>路線区間・接続部（IC・JCT）ごとの供用開始年（西暦）</td>
+									<td>時間型（TM_Instant）</td>
+								</tr>
+								<tr>
+									<td>設置期間（開始年）<br>（N06_013）</td>
+									<td>地物が設置（開業）された年</td>
+									<td>時間型（TM_Period〉</td>
+								</tr>
+								<tr>
+									<td>設置期間（終了年）<br>（N06_014）</td>
+									<td>地物が廃止（変更・廃止）された年の1年前の年。継続中の場合は9999</td>
+									<td>時間型（TM_Period〉</td>
+								</tr>
+								<tr>
+									<td>関係ID<br>（N06_015）</td>
+									<td>区間、接合部の属性が変更された場合の同一地物の時系列変化データであることを表すグループID（その他の情報欄に詳細を説明）</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>変遷ID<br>（N06_016）</td>
+									<td>同一年次に複数回属性が変更された場合の属性項目を表す識別子</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/HighwayTransitionCd.html"
+											target="_blank">変遷IDコード</a>」</td>
+								</tr>
+								<tr>
+									<td>変遷備考<br>（N06_017）</td>
+									<td>変遷IDで示した属性の内容を記述する</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>地点名<br>（N06_018）</td>
+									<td>接続部の名称</td>
+									<td>文字列型（CharacterString）</td>
+								</tr>
+								<tr>
+									<td>接合部種別<br>（N06_019）</td>
+									<td>接続部の種別</td>
+									<td>コードリスト「<a href="/ksj/gml/codelist/HighwayConCd.html"
+											target="_blank">接合部種別コード</a>」</td>
+								</tr>
+								<tr>
+									<th>主な品質情報</th>
+									<td colspan="3">■ 完全性/過剰・漏れ：全数検査、誤率0%、製品仕様書にある原典資料と比較。<br>■
+										位置正確度/絶対正確度（外部正確度）：全数検査、誤率0%、収集した資料と比較。<br>■
+										分類正確度/非定量的属性の正しさ：各属性に対して、収集した資料の情報が付与されているかを比較。</td>
+								</tr>
+								<tr>
+									<th>データフォーマット（符号化）</th>
+									<td colspan="3">・GML形式（JPGIS2014準拠）。詳細は<a
+											href="/ksj/gml/product_spec/KS-PS-N06-v2_1.pdf"
+											target="_blank">製品仕様書</a>内の符号化規則を参照してください。<br>
+										・シェープファイル形式。<a href="/ksj/gml/codelist/shape_property_table2.xlsx"
+											target="_blank">シェープファイルの属性について</a><br>
+										・GeoJSON形式（2016年度（平成28年度）から）
+									</td>
+								</tr>
+								<tr>
+									<th>国土情報ウェブマッピングシステムへの登録</th>
+									<td colspan="3">
+										<a href="https://nlftp.mlit.go.jp/webmapc/mapmain.html"
+											target="_blank">登録あり</a>：
+										<a href="/ksj/gml/datalist/KsjTmplt-N06-2020.html"
+											target="_blank">2020年度（令和2年度）版</a>のデータです。
+									</td>
+								</tr>
+								<tr>
+									<th>地図上でデータ閲覧できるサイト</th>
+									<td colspan="4">
+									</td>
+								</tr>
+								<tr>
+									<th>識別子</th>
+									<td colspan="3">N06</td>
+								</tr>
+								<tr>
+									<th>その他の情報</th>
+									<td colspan="3">・各データのメタデータについては、ダウンロードしたファイルに添付されています。<br>
+										<br>【関係IDについて】<br>・同一の地物であることを表すグループIDであり、地物間の関係を示す対象地物の種類(地物区分コード)と、その対象地物に対して、同一と認識される地物全体に順次付与される共通の番号(グルーピングの番号)。<br>・地物区分コードは路線をEA02、接合部をEA03とし、グルーピングの番号は地物の最も新しいデータを１とする。<br>
+										<br>【時系列データの利用方法について】<br>
+										<a href="../codelist/transition_use.pdf" target="_blank">こちら</a>をご覧ください。
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</li>
+			</ul>
+			<table class="mb15 responsive-table ex-tf_container">
+				<tbody>
+					<th class="card-content blue lighten-1 ex-tf_th">年度で絞り込み</th>
+						<td>
+							<div class="ex-tf_y input-field"></div>
+						</td>
+				</tbody>
+			</table>
+
+			<!-- DW都道府県 -->
+			<div class="card blue mt15">
+				<div class="card-content blue lighten-1">
+					<p class="white-text">国土数値情報ダウンロードサービス　（JPGIS2.1（GML）準拠及びSHAPE形式データ）　データのダウンロード</p>
+				</div>
+			</div>
+			<div class="card mt15">
+				<div class="card-content">
+					<p>選択したデータ項目は、国土数値情報　高速道路時系列データ　です。</p>
+				</div>
+			</div>
+			<table class="mb30 responsive-table dataTables">
+				<thead>
+					<tr>
+						<th class="txtCenter">地域</th>
+						<th class="txtCenter">測地系</th>
+						<th class="txtCenter">年度</th>
+						<th class="txtCenter">ファイル容量</th>
+						<th class="txtCenter">ファイル名</th>
+						<th class="txtCenter">ダウンロード</th>
+						<th class="txtCenter  style="width:fit-content"">一括DL
+							<a class="Select_part tooltipped" style="cursor:pointer;position:relative" data-position="top" data-tooltip="全てのデータを選択">
+								<label class="chkLabel-front">
+									<input type="checkbox"  class="filled-in select center-align" disabled="disabled" checked="checked">
+									<span></span>
+								</label>
+								<label class="chkLabel-front chkLabel-back">
+									<input type="checkbox"  class="filled-in blank center-align" disabled="disabled" checked="checked">
+									<span></span>
+								</label>
+							</a>
+							<a class="Clear_part tooltipped" style="cursor:pointer;position:relative;margin-left: 8px;"  data-position="top" data-tooltip="全ての選択を解除">
+								<label class="chkLabel-front">
+									<input type="checkbox"  class="filled-in blank center-align" disabled="disabled">
+									<span></span>
+								</label>
+								<label class="chkLabel-fornt chkLabel-back">
+									<input type="checkbox" class="filled-in blank-back center-align" disabled="disabled">
+									<span></span>
+								</label>
+							</a>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2024年（令和6年）</td>
+						<td class="txtCenter">8.81MB</td>
+						<td class="txtCenter">N06-24_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('8.81MB','N06-24_GML.zip','../data/N06/N06-24/N06-24_GML.zip' ,this);">
+								<span id="N06-24_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-24_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2023年（令和5年）</td>
+						<td class="txtCenter">7.36MB</td>
+						<td class="txtCenter">N06-23_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('7.36MB','N06-23_GML.zip','../data/N06/N06-23/N06-23_GML.zip' ,this);">
+								<span id="N06-23_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-23_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2022年（令和4年）</td>
+						<td class="txtCenter">7.25MB</td>
+						<td class="txtCenter">N06-22_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('7.25MB','N06-22_GML.zip','../data/N06/N06-22/N06-22_GML.zip' ,this);">
+								<span id="N06-22_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-22_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2021年（令和3年）</td>
+						<td class="txtCenter">7.19MB</td>
+						<td class="txtCenter">N06-21_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('7.19MB','N06-21_GML.zip','../data/N06/N06-21/N06-21_GML.zip' ,this);">
+								<span id="N06-21_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-21_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2020年（令和2年）</td>
+						<td class="txtCenter">3.48MB</td>
+						<td class="txtCenter">N06-20_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('3.48MB','N06-20_GML.zip','../data/N06/N06-20/N06-20_GML.zip' ,this);">
+								<span id="N06-20_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-20_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2019年（令和元年）</td>
+						<td class="txtCenter">4.14MB</td>
+						<td class="txtCenter">N06-19_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('4.14MB','N06-19_GML.zip','../data/N06/N06-19/N06-19_GML.zip' ,this);">
+								<span id="N06-19_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-19_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2018年（平成30年）</td>
+						<td class="txtCenter">3.31MB</td>
+						<td class="txtCenter">N06-18_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('3.31MB','N06-18_GML.zip','../data/N06/N06-18/N06-18_GML.zip' ,this);">
+								<span id="N06-18_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-18_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2017年（平成29年）</td>
+						<td class="txtCenter">3.89MB</td>
+						<td class="txtCenter">N06-17_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('3.89MB','N06-17_GML.zip','../data/N06/N06-17/N06-17_GML.zip' ,this);">
+								<span id="N06-17_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-17_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2016年（平成28年）</td>
+						<td class="txtCenter">3.15MB</td>
+						<td class="txtCenter">N06-16_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('3.15MB','N06-16_GML.zip','../data/N06/N06-16/N06-16_GML.zip' ,this);">
+								<span id="N06-16_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-16_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2015年（平成27年）</td>
+						<td class="txtCenter">2.29MB</td>
+						<td class="txtCenter">N06-15_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2.29MB','N06-15_GML.zip','../data/N06/N06-15/N06-15_GML.zip' ,this);">
+								<span id="N06-15_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-15_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2014年（平成26年）</td>
+						<td class="txtCenter">2.23MB</td>
+						<td class="txtCenter">N06-14_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2.23MB','N06-14_GML.zip','../data/N06/N06-14/N06-14_GML.zip' ,this);">
+								<span id="N06-14_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-14_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2013年（平成25年）</td>
+						<td class="txtCenter">2.18MB</td>
+						<td class="txtCenter">N06-13.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2.18MB','N06-13.zip','../data/N06/N06-13/N06-13.zip' ,this);">
+								<span id="N06-13.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-13.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2012年（平成24年）</td>
+						<td class="txtCenter">2.13MB</td>
+						<td class="txtCenter">N06-12_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2.13MB','N06-12_GML.zip','../data/N06/N06-12/N06-12_GML.zip' ,this);">
+								<span id="N06-12_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-12_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2011年（平成23年）</td>
+						<td class="txtCenter">2.06MB</td>
+						<td class="txtCenter">N06-11_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('2.06MB','N06-11_GML.zip','../data/N06/N06-11/N06-11_GML.zip' ,this);">
+								<span id="N06-11_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="N06-11_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<!-- //DW都道府県 -->
+		</div>
+	</main>
+
+	<div class="DL-baloon">
+		チェックを入れて<br>一括ダウンロード
+			<br><a class="DLBln-close" style="text-decoration:underline;color:dimgrey;cursor:pointer">閉じる</a>
+	</div>
+
+	<p id="List_DL">
+		<a class="tooltipped ListDlBtn" data-position="left" data-tooltip="一括ダウンロード" style="cursor:pointer">
+			<i class="Medium material-icons DL_icon">file_download</i>
+		</a>
+	</p>
+
+	<p id="pageTop">
+		<a class="tooltipped" data-position="left" data-tooltip="ページトップ" href="#">
+			<i class="Medium material-icons">vertical_align_top</i>
+		</a>
+	</p>
+
+
+	<div class="progress-box" style="display: none;">
+		<a class="progress-text">ダウンロード中...</a>
+		<a class="completed-files"></a>
+		<div class="progress" style="width:80%;margin-bottom:0.5rem;">
+			<div class="determinate" style="width: 0%;"></div>
+		</div>
+		<a class="progress-cancel" href="javascript:void(0)" style="text-decoration:underline">キャンセル</a>
+	</div>
+
+	<!-- フッターー -->
+	  <footer class="page-footer blue lighten-5">
+    <div class="container">
+      <div class="row">
+      <!--<div class="col l4 offset-l2 s12">-->
+      <div class="col">
+
+<div class="footer__grid-container">
+<ul id="footer__gird-item1">
+  <li><h5 class="grey-text text-darken-3 footer__grid-title">国土数値情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/index.html">国土数値情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">国土数値情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_news.html">国土数値情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_error.html">国土数値情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/error-report/error-report.html">国土数値情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item2">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">位置参照情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj/index.html">位置参照情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_news.html">位置参照情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item3">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">国土調査</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">国土調査 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/landclassification/download.html">国土調査 GISデータのダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/kokjo.html">国土調査とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">土地分類調査</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo_news.html">水調査</a></li>
+</ul>
+<ul id="footer__gird-item4">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">地図で見る</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+</ul>
+<ul id="footer__gird-item5">
+            <li><h5 class="grey-text text-darken-3 g-footer-title">その他</h5></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/i_news.html">重要なお知らせ一覧</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">初めての方へ</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/faq.html">よくある質問（FAQ）</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/agreement.html">利用規約</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html">QGIS活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html#tableau-manual">Tableau活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/event/event.html">イベント特集</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/manual.html">QGISでの国土数値情報利用方法</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/privacy.html">プライバシーポリシー</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/inquiry.html">お問合せ</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/sitemap.html">サイトマップ</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/link.html">リンク</a></li>
+          </ul>
+          </div>
+
+</div>
+      </div>
+    </div>
+
+    <div class="footer-copyright  blue darken-4">
+      <div class="container white-text"> All rights reserved. Copyright(c) National Land Information Division, National Spatial Planning and Regional Policy Bureau, MLIT of Japan </div>
+    </div>
+
+  </footer>
+
+	<script src="../../../ksj/js/gis.js" type="text/javascript">
+
+	</script>
+<script type="text/javascript" async="async" src="/__zenedge/assets/f.js?v=1674207422"></script><script>(function () { var v = 1752561127 * 3.1415926535898; v = Math.floor(v); document.cookie = "__zjc8926="+v+"; expires=Tue, 15 Jul 2025 06:33:53 UTC; path=/"; })()</script></body>
+
+</html>

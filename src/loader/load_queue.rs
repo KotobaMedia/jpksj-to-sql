@@ -23,7 +23,7 @@ async fn load(
     let vrt_tmp = tmp.join("vrt");
     tokio::fs::create_dir_all(&vrt_tmp).await?;
 
-    let identifier = &dataset.initial_item.identifier;
+    let identifier = &dataset.identifier();
 
     // first, let's get the entries for this dataset from the mapping file
     let mappings = mapping::find_mapping_def_for_entry(&identifier).await?;
@@ -103,13 +103,13 @@ impl LoadQueue {
                         .send(PBStatusUpdateMsg {
                             added: 0,
                             finished: 0,
-                            msg: Some(item.initial_item.identifier.clone()),
+                            msg: Some(item.identifier()),
                         })
                         .await
                         .unwrap();
                     let result = load(&item, &postgres_url, skip_if_exists, &metadata_conn).await;
                     if let Err(e) = result {
-                        let identifier = item.initial_item.identifier.clone();
+                        let identifier = item.identifier();
                         eprintln!(
                             "Error in loading dataset {}, skipping... {:?}",
                             identifier, e
@@ -119,7 +119,7 @@ impl LoadQueue {
                         .send(PBStatusUpdateMsg {
                             added: 0,
                             finished: 1,
-                            msg: Some(item.initial_item.identifier.clone()),
+                            msg: Some(item.identifier()),
                         })
                         .await
                         .unwrap();

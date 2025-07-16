@@ -107,7 +107,7 @@ impl MetadataConnection {
                     });
                 }
 
-                use crate::scraper::data_page::RefType;
+                use crate::scraper::ref_parser::RefType;
                 column_metadata.enum_values = match &column.r#ref {
                     Some(RefType::Code(map)) => Some(
                         map.iter()

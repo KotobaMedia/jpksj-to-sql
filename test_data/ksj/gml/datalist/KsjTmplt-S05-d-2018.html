@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta content="ja" http-equiv="content-language">
+	<meta content="width=device-width" name="viewport">
+	<meta content="telephone=no" name="format-detection">
+	<meta content="" name="description">
+	<meta content="" name="keyword">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="../../../ksj/css/materialize.css" media="screen,projection" rel="stylesheet" type="text/css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js">
+
+	</script>
+	<link href="../../../ksj/css/style.css" media="screen,projection" rel="stylesheet" type="text/css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="text/javascript">
+
+	</script>
+	<title>国土数値情報 | 交通流動量 貨物・旅客地域流動量データ</title>
+
+	<!-- Google Tag Manager -->
+	<script>(function (w, d, s, l, i) {
+			w[l] = w[l] || []; w[l].push({
+				'gtm.start':
+					new Date().getTime(), event: 'gtm.js'
+			}); var f = d.getElementsByTagName(s)[0],
+				j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+					'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+		})(window, document, 'script', 'dataLayer', 'GTM-KBHCLWJ');</script>
+	<!-- End Google Tag Manager -->
+
+		<link rel="stylesheet" href="../../../ksj/css/datatables.min.css">
+		<script src="../../../ksj/js/datatables.min.js"></script>
+		<script src="../../../ksj/js/jquery.ex-table-filter.js"></script>
+</head>
+
+<body>
+
+	<!-- Google Tag Manager (noscript) -->
+	<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KBHCLWJ" height="0" width="0"
+			style="display:none;visibility:hidden"></iframe></noscript>
+	<!-- End Google Tag Manager (noscript) -->
+
+	<!-- ヘッダー -->
+	
+  <header class="gmenu">
+
+
+    <nav class="nav-extended blue darken-3">
+      <div class="nav-wrapper">
+        <div>
+          <span class="gmenu__logo-M">
+            <img class="img__logo-M" src="/ksj/img/logo.png" alt="国土交通省">
+          </span>
+        </div>
+        <a class="gmenu__title" href="/">国土数値情報ダウンロードサイト</a>
+        <a data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
+
+        <ul id="nav-mobile" class="right hide-on-med-and-down gmenu__title-line">
+          <li><a class="nav_padding_10" href="/first.html">初めての方へ</a></li>
+          <li><a class="nav_padding_10" href="/ksj/case_studies.html">活用事例</a></li>
+          <li><a class="nav_padding_10" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">アンケート</a></li>
+          <li><a class="nav_padding_10" href="/ksj/other/other.html">その他</a></li>
+          <li><a class="waves-effect waves-light btn" "nav_padding_10" href="/ksj/inquiry.html">お問合せ</a></li>
+          <!-- 検索窓　
+          <li>
+            <form class="search-form" action="https://www.google.co.jp/cse" name="cse-search-box" target="_blank">
+              <input value="6768d71d594cb4140" name="cx" type="hidden">
+              <input value="UTF-8" name="ie" type="hidden">
+              <input class="search-input" size="16" name="q" type="text" placeholder="サイト内を検索">
+              <button class="search-btn blue darken-3" value="" name="sa"><i class="material-icons">search</i></button>
+            </form>
+          </li>-->
+          <div>
+            <span class="gmenu__logo">
+              <img class="img__logo" src="/ksj/img/logo.png" alt="国土交通省">
+            </span>
+          </div>
+        </ul>
+
+
+      </div>
+    </nav>
+
+
+    <ul class="sidenav collection with-header" id="mobile-demo"> 
+    <li><a href="/ksj/index.html">国土数値情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/kokjo/inspect/inspect.html">国土調査<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a href="/webmapc/mapmain.html">地図で見る<i class="material-icons blue-text text-darken-3 left">widgets</i></a></li>
+        <li><a class="collection-item" href="/first.html">初めての方へ</a></li>
+        <li><a class="collection-item" href="/ksj/case_studies.html">活用事例</a></li>
+        <li><a class="collection-item" href="/ksj/inquiry.html">お問合せ</a></li>
+        <li><a class="collection-item" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li>
+        <li><a class="collection-item" href="/ksj/other/other.html">その他</a></li>
+    </ul>
+
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+    <!-- <script src="https://tebot.jp/api/bot/1274/chat_embed_v8?lang=undefined&open_default=true&code=6eef28be8d4ae2512548634790c3a7c8"></script> -->
+  </header>
+
+
+<header class="gmenu__contents-line">
+  <!-- mega size menu -->
+  <!--
+  <div>
+    <ul class="main-menu">       
+      <li class="menu__mega">
+        <a href="#con-1" class="init-bottom">国土数値情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土数値情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-2" class="init-bottom">位置参照情報</a>
+          <ul class="menu__second-level">
+            <li><a href="#">位置参照情報とは</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+            <li><a href="#">修正情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-3" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="#">国土調査</a></li>
+            <li><a href="#">データダウンロード</a></li>
+            <li><a href="#">新着情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__mega">
+        <a href="#con-4" class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="#">ウェブマッピングシステムとは</a></li>
+            <li><a href="#">ウェブマッピングシステムを起動</a></li>
+            <li><a href="#">ヘルプ</a></li>
+          </ul>
+      </li>
+    </ul>
+  </div>
+  -->
+
+  <div class="main-menu__L">
+    <ul class="main-menu">
+      <li class="menu__single">
+        <a class="init-bottom">国土数値情報</a>
+        <ul class="menu__second-level">
+            <li><a href="/ksj/index.html">データダウンロード</a></li>  
+            <li><a href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>            
+            <li><a href="/ksj/ksj.html">国土数値情報とは</a></li>
+            <li><a href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+            <li><a href="/ksj_news.html">新着情報</a></li>
+            <li><a href="/ksj_error.html">修正情報</a></li>
+            <li><a href="/ksj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+
+      <li class="menu__single">
+        <a class="init-bottom">
+          位置参照情報
+          <a class="init-bottom__l2">ジオコーディング（住所⇔緯度経度）</a>
+        </a>
+          <ul class="menu__second-level">
+            <li><a href="/cgi-bin/isj/dls/_choose_method.cgi">データダウンロード</a></li>  
+            <li><a href="/isj/index.html">位置参照情報とは</a></li>
+            <li><a href="/isj_news.html">新着情報</a></li>
+            <li><a href="/isj_error.html">修正情報</a></li>
+            <li><a href="/isj/error-report/error-report.html">エラー情報</a></li>
+          </ul>
+      </li>
+      
+      <!--
+      <li class="menu__single">
+        <a href="/kokjo_news.html" class="init-bottom">国土調査</a>
+          <ul class="menu__second-level">
+            <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>  
+            <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+            <li><a href="/kokjo_news.html">新着情報</a></li>
+          </ul>
+      </li>-->
+
+      
+      <li class="menu__multi">
+        <a class="init-bottom">国土調査
+        <a class="init-bottom__l2">土地分類調査・水調査</a>
+        </a>
+        <ul class="menu__second-level">
+          <li><a href="/kokjo/inspect/inspect.html">データダウンロード</a></li>
+          <li><a href="/kokjo/inspect/landclassification/download.html">GISデータのダウンロード</a></li>
+          <li>
+            <a class="init-right">国土調査とは</a>
+            <ul class="menu__third-level">
+                <li><a href="/ksj/kokjo.html">国土調査とは</a></li>
+                <li><a href="/kokjo/inspect/landclassification/index.html">土地分類調査・水調査の概要</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">土地分類調査</a>
+            <ul class="menu__third-level">
+            <li><a href="/kokjo/inspect/landclassification/land/l_national_map_5-1.html">5万分の1都道府県土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1.html">20万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_50-1.html">50万分の1土地分類基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_det.html">土地分類調査（細部調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/land_history_2011/index_tile.html">土地履歴調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_20-1-hozen.html">20万分の1土地保全基本調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_d.html">災害類型別土地保全調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/l_national_map_v.html">土地分類基本調査（垂直調査）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/chikei_bunrui.html">地形分類図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/saigai_rireki.html">災害履歴図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/tochi_riyou.html">土地利用図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/hyousou_chisitsu.html">表層地質図から選ぶ</a></li>
+              <li><a href="/kokjo/inspect/landclassification/land/dojyou.html">土壌図から選ぶ</a></li>
+            </ul>
+          </li>
+          <li>
+            <a class="init-right">水調査</a>
+            <ul class="menu__third-level">
+              <li><a href="/kokjo/inspect/inspect.html#suikei">表流水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map.html"> ○主要水系調査（更新調査：2003年～）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_p.html"> ○主要水系調査（1966年～2002年）</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_pref.html">○都道府県水調査</a></li>
+              <li><a href="/kokjo/inspect/inspect.html#suikei">地下水</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/f9_exp.html">○全国地下水資料台帳</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_ug.html">○地下水の見える化調査</a></li>
+              <li><a href="/kokjo/inspect/landclassification/water/w_national_map_cw.html">○地下水マップ</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+
+
+      <li class="menu__single">
+        <a class="init-bottom">地図で見る</a>
+          <ul class="menu__second-level">
+            <li><a href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+            <li><a href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+            <li><a href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+          </ul>
+      </li>
+
+
+
+    </ul>
+  </div>
+
+
+</header>
+<!-- モーダル本体 -->
+<div class="modal-container">
+  <div class="modal-body">
+    <!-- 閉じるボタン -->
+    <div class="close_btn_X">×</div>
+    <div class="modal-close btn waves-effect waves-light indigo btn-small">スキップする</div>
+    <!-- <div class="modal-close btn waves-effect waves-light indigo btn-small">ダウンロードへ進む</div> -->
+    
+    <!-- モーダル内のコンテンツ -->
+    <div class="modal-content">
+      <iframe src="https://docs.google.com/forms/d/1-J1_3_NPwYy8cpH7yfwRlKa5iYaN9zw6S4ng4e0PuEs/viewform?usp=sf_link" 
+        width="98%" 
+        height="600"
+        frameborder="0" 
+        marginheight="0" 
+        marginwidth="0">
+      </iframe> 
+    </div>
+  </div>
+</div>	<main>
+		<div class="container">
+			<div class="breadcrumb-list">
+				<a class="breadcrumb" href="../../../index.html">TOP</a>
+				<a class="breadcrumb" href="../../index.html">国土数値情報</a>
+				<a class="breadcrumb" href="#!">交通流動量 貨物・旅客地域流動量データ</a>
+			</div>
+			<div class="col s12 center">
+				<p class="left-align light">データのダウンロード（2.各データ詳細）<br>
+					選択したデータ項目は、国土数値情報　交通流動量 貨物・旅客地域流動量データ　です。<br>
+					最新のデータは2018年度（平成30年度）版です。</p>
+			</div>
+			<ul class="collapsible">
+				<li class="active">
+					<div class="collapsible-header blue darken-4">
+						<p class="white-text">交通流動量 貨物・旅客地域流動量　2018年度～2001年度（平成30年度～平成13年度）版<i
+								class="material-icons">arrow_drop_down</i>
+						</p>
+					</div>
+					<div class="collapsible-body">
+						<table class="tablelist responsive-table">
+							<tbody>
+								<tr>
+									<th>更新履歴</th>
+									<td></td>
+								</tr>
+								<tr>
+									<th>内容</th>
+									<td>国土交通省が実施する貨物・旅客地域流動調査における全国51地域間の輸送機関別旅客量集計及び全国54地域間の輸送機関別９品目別貨物流動量集計</td>
+								</tr>
+								<tr>
+									<th>データ基準年度</th>
+									<td>2018年度～2001年度（平成30年度～平成13年度）</td>
+								</tr>
+								<tr>
+									<th>関連する法律</th>
+									<td>－</td>
+								</tr>
+								<tr>
+									<th>原典資料</th>
+									<td>国土数値情報（公共施設）（市区町村役場などの行政の代表点となるもののみ）、貨物・旅客地域流動調査集計結果（国土交通省総合政策局）、数値地図25000（地図画像）
+									</td>
+								</tr>
+								<tr>
+									<th>作成方法</th>
+									<td>貨物・旅客地域流動調査の集計表をもとに、都道府県県庁所在地等を結ぶラインデータを作成し、流動量を属性情報として付加した。</td>
+								</tr>
+								<tr>
+									<th>
+										<a href="/ksj/other/agreement_02.html" target="_blank">このデータの使用許諾条件</a>
+									</th>
+									<td>商用可</td>
+								</tr>
+								<tr>
+									<th>座標系</th>
+									<td>JGD2011 / （B, L）</td>
+								</tr>
+								<tr>
+									<th>データ形状</th>
+									<td>面、線</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="row rowReset">
+							<div class="col s6 colReset">
+								<table class="responsive-table">
+									<tbody>
+										<tr>
+											<th>データ構造</th>
+										</tr>
+										<tr>
+											<td>
+												<a href="./img/S05-d-1.png" target="_blank" title="拡大表示">
+													<img alt="データ構造" class="responsive-img" src="./img/S05-d-1.png">
+												</a>
+												<br>《拡大表示するには図をクリックしてください》
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="col s6">
+								<table class="responsive-table">
+									<tbody>
+										<tr>
+											<th>イメージ</th>
+										</tr>
+										<tr>
+											<td>
+												<a href="./img/S05-d-2.png" target="_blank" title="拡大表示">
+													<img alt="イメージ" class="responsive-img" src="./img/S05-d-2.png">
+												</a>
+												<br>《拡大表示するには図をクリックしてください》<br>
+												<a href="./img/S05-d-3.png" target="_blank" title="拡大表示">
+													<img alt="イメージ" class="responsive-img" src="./img/S05-d-3.png">
+												</a>
+												<br>《拡大表示するには図をクリックしてください》
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<table class="tablelist responsive-table">
+							<tbody>
+								<tr>
+									<th rowspan="2">地物情報</th>
+									<th>地物名</th>
+									<th colspan="2">説明</th>
+								</tr>
+								<tr>
+									<td>旅客地域流動量</td>
+									<td colspan="2">旅客地域流動調査の集計結果に示される、地域相互間旅客輸送人員ＯＤ量</td>
+								</tr>
+								<tr>
+									<th rowspan="17">属性情報<br>（PassengerRegionFlow.shp）</th>
+									<th>属性名<br>（かっこ内はshp属性名）</th>
+									<th>説明</th>
+									<th>属性の型</th>
+								</tr>
+								<tr>
+									<td>調査年度<br>（S05d_044）</td>
+									<td>旅客地域流動量調査の実施年度</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>発_ゾーンコード<br>（S05d_045）</td>
+									<td>ＯＤ量の発ゾーンのコード</td>
+									<th rowspan="2">コードリスト「<a href="/ksj/gml/codelist/RyokakuZoneCD.html"
+											target="_blank">旅客地域流動ゾーンコード</a>」</th>
+								</tr>
+								<tr>
+									<td>着_ゾーンコード<br>（S05d_046）</td>
+									<td>ＯＤ量の着ゾーンのコード</td>
+								</tr>
+								<tr>
+									<td>ＪＲ定期旅客数<br>（S05d_047）</td>
+									<td>輸送機関「ＪＲ定期」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>ＪＲ定期外旅客数<br>（S05d_048）</td>
+									<td>輸送機関「ＪＲ定期外」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>ＪＲ合計旅客数<br>（S05d_049）</td>
+									<td>輸送機関「ＪＲ合計」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>民鉄定期旅客数<br>（S05d_050）</td>
+									<td>輸送機関「民鉄定期」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>民鉄定期外旅客数<br>（S05d_051）</td>
+									<td>輸送機関「民鉄定期外」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>民鉄合計旅客数<br>（S05d_052）</td>
+									<td>輸送機関「民鉄合計」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>乗合バス旅客数<br>（S05d_053）</td>
+									<td>輸送機関「乗合バス」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>貸切バス旅客数<br>（S05d_054）</td>
+									<td>輸送機関「貸切バス」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>営業用乗用車旅客数<br>（S05d_056）</td>
+									<td>輸送機関「営業用乗用車」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>自動車合計旅客数<br>（S05d_058）</td>
+									<td>輸送機関「自動車合計」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>旅客船旅客数<br>（S05d_059）</td>
+									<td>輸送機関「旅客船」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>航空旅客数<br>（S05d_060）</td>
+									<td>輸送機関「航空」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<td>全機関旅客数<br>（S05d_061）</td>
+									<td>輸送機関「全機関」の輸送人員（千人）</td>
+									<td>実数型</td>
+								</tr>
+								<tr>
+									<th rowspan="2">地物情報</th>
+									<th>地物名</th>
+									<th colspan="2">説明</th>
+								</tr>
+								<tr>
+									<td>貨物地域流動量</td>
+									<td colspan="2">貨物地域流動調査の集計結果に示される、地域相互間輸送トン数ＯＤ量</td>
+								</tr>
+								<tr>
+									<th rowspan="44">属性情報<br>（CargoRegionFlow.shp）</th>
+									<th>属性名<br>（かっこ内はshp属性名）</th>
+									<th>説明</th>
+									<th>属性の型</th>
+								</tr>
+								<tr>
+									<td>調査年度<br>（S05d_001）</td>
+									<td>貨物地域流動調査の実施年度</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>発_ゾーンコード<br>（S05d_002）</td>
+									<td>ＯＤ量の発ゾーンの行政コード</td>
+									<th rowspan="2">コードリスト「<a href="/ksj/gml/codelist/KamotsuZoneCD.html"
+											target="_blank">貨物地域流動ゾーンコード</a>」</th>
+								</tr>
+								<tr>
+									<td>着_ゾーンコード<br>（S05d_003）</td>
+									<td>ＯＤ量の着ゾーンの行政コード</td>
+								</tr>
+								<tr>
+									<td>全機関_農水産品トン数<br>（S05d_004）</td>
+									<td>輸送機関「全機関」の農水産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_林産品トン数<br>（S05d_005）</td>
+									<td>輸送機関「全機関」の林産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_鉱産品トン数<br>（S05d_006）</td>
+									<td>輸送機関「全機関」の鉱産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_金属・機械工業品トン数<br>（S05d_007）</td>
+									<td>輸送機関「全機関」の金属・機械工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_化学工業品トン数<br>（S05d_008）</td>
+									<td>輸送機関「全機関」の化学工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_軽工業品トン数<br>（S05d_009）</td>
+									<td>輸送機関「全機関」の軽工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_雑工業品トン数<br>（S05d_010）</td>
+									<td>輸送機関「全機関」の雑工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_特種品トン数<br>（S05d_011）</td>
+									<td>輸送機関「全機関」の特種品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_その他トン数<br>（S05d_012）</td>
+									<td>輸送機関「全機関」のその他の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>全機関_合計トン数<br>（S05d_013）</td>
+									<td>輸送機関「全機関」の合計輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_農水産品トン数<br>（S05d_014）</td>
+									<td>輸送機関「鉄道」の農水産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_林産品トン数<br>（S05d_015）</td>
+									<td>輸送機関「鉄道」の林産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_鉱産品トン数<br>（S05d_016）</td>
+									<td>輸送機関「鉄道」の鉱産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_金属・機械工業品トン数<br>（S05d_017）</td>
+									<td>輸送機関「鉄道」の金属・機械工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_化学工業品トン数<br>（S05d_018）</td>
+									<td>輸送機関「鉄道」の化学工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_軽工業品トン数<br>（S05d_019）</td>
+									<td>輸送機関「鉄道」の軽工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_雑工業品トン数<br>（S05d_020）</td>
+									<td>輸送機関「鉄道」の雑工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_特種品トン数<br>（S05d_021）</td>
+									<td>輸送機関「鉄道」の特種品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_その他トン数<br>（S05d_022）</td>
+									<td>輸送機関「鉄道」のその他の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>鉄道_合計トン数<br>（S05d_023）</td>
+									<td>輸送機関「鉄道」の合計輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_農水産品トン数<br>（S05d_024）</td>
+									<td>輸送機関「海運」の農水産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_林産品トン数<br>（S05d_025）</td>
+									<td>輸送機関「海運」の林産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_鉱産品トン数<br>（S05d_026）</td>
+									<td>輸送機関「海運」の鉱産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_金属・機械工業品トン数<br>（S05d_027）</td>
+									<td>輸送機関「海運」の金属・機械工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_化学工業品トン数<br>（S05d_028）</td>
+									<td>輸送機関「海運」の化学工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_軽工業品トン数<br>（S05d_029）</td>
+									<td>輸送機関「海運」の軽工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_雑工業品トン数<br>（S05d_030）</td>
+									<td>輸送機関「海運」の雑工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_特種品トン数<br>（S05d_031）</td>
+									<td>輸送機関「海運」の特種品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_その他トン数<br>（S05d_032）</td>
+									<td>輸送機関「海運」のその他の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>海運_合計トン数<br>（S05d_033）</td>
+									<td>輸送機関「海運」の合計輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_農水産品トン数<br>（S05d_034）</td>
+									<td>輸送機関「自動車」の農水産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_林産品トン数<br>（S05d_035）</td>
+									<td>輸送機関「自動車」の林産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_鉱産品トン数<br>（S05d_036）</td>
+									<td>輸送機関「自動車」の鉱産品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_金属・機械工業品トン数<br>（S05d_037）</td>
+									<td>輸送機関「自動車」の金属・工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_化学工業品トン数<br>（S05d_038）</td>
+									<td>輸送機関「自動車」の化学工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_軽工業品トン数<br>（S05d_039）</td>
+									<td>輸送機関「自動車」の軽工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_雑工業品トン数<br>（S05d_040）</td>
+									<td>輸送機関「自動車」の雑工業品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_特種品トン数<br>（S05d_041）</td>
+									<td>輸送機関「自動車」の特種品の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_その他トン数<br>（S05d_042）</td>
+									<td>輸送機関「自動車」のその他の輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<td>自動車_合計トン数<br>（S05d_043）</td>
+									<td>輸送機関「自動車」の合計輸送トン数</td>
+									<td>整数型</td>
+								</tr>
+								<tr>
+									<th>主な品質情報</th>
+									<td colspan="3">■
+										完全性/過剰・漏れ：　誤率0%<br>交通流動量の原典資料（発生・集中量、パーソントリップＯＤ量、パーソントリップゾーン、駅別乗降数、旅客地域流動量、貨物地域流動量）と対応関係がとれないデータが存在すれば、それをエラーとする。<br>■
+										位置正確度/絶対正確度（外部正確度）：　誤率0%<br>数値地図25000（空間データ基盤）、その他参照した資料と比較。</td>
+								</tr>
+								<tr>
+									<th>データフォーマット（符号化）</th>
+									<td colspan="3">・JPGISに準拠した符号化（GML形式）。詳細は<a
+											href="/ksj/gml/product_spec/KS-PS-S05-v2_2.pdf"
+											target="_blank">製品仕様書</a>内の符号化規則を参照してください。
+										<br>・GeoJSON形式（2016年度から）
+										<br>・シェープファイル形式。<a href="/ksj/gml/codelist/shape_property_table2.xlsx"
+											target="_blank">シェープファイルの属性について</a>
+									</td>
+								</tr>
+								<tr>
+									<th>国土情報ウェブマッピングシステムへの登録</th>
+									<td colspan="3">登録なし</td>
+								</tr>
+								<tr>
+									<th>地図上でデータ閲覧できるサイト</th>
+									<td colspan="3">
+									</td>
+								</tr>
+								<tr>
+									<th>識別子</th>
+									<td colspan="3">S05-d</td>
+								</tr>
+								<tr>
+									<th>その他の情報</th>
+									<td colspan="3">各データのメタデータについては、ダウンロードしたファイルに添付されています。<br>
+										<br>貨物・旅客地域流動調査の概要については下記を参照してください。<br>
+										<a href="https://www.mlit.go.jp/k-toukei/kamoturyokakutiikiryuudoutyousa.html"
+											target="_blank">https://www.mlit.go.jp/k-toukei/kamoturyokakutiikiryuudoutyousa.html</a>
+										<br>
+										<br>また、本調査の原典の一部として用いている自動車輸送統計調査は、標本調査であり、全国における総輸送量を把握するための精度を確保する設計であるため、当該データを用いて地域又は品目を細分化して求めた本調査の各発着輸送量の精度は、残念ながら非常に低くなっているものと思われますが、輸送機関別比較等の利用者ニーズに対応するために作成しています。
+										よって、本調査結果の利用にあたっては、可能な限り品目及び地域を統合したものを利用するか、又は過去数年間の本調査結果の平均化を行うことなど、十分な注意が必要です。利用者においては、本調査を使用した分析結果の公表などを行う際には、上記の趣旨に沿った注釈を付けるなど、配慮してください。<br>
+										<br>※2010年度（平成22年度）の旅客地域流動調査からは、「自家用バス旅客数」「自家用自動車旅客数」が集計項目から除かれたため、2010年度（平成22年度）以降のデータではこれらの属性項目は削除されている。
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</li>
+			</ul>
+			<table class="mb15 responsive-table ex-tf_container">
+				<tbody>
+					<th class="card-content blue lighten-1 ex-tf_th">年度で絞り込み</th>
+						<td>
+							<div class="ex-tf_y input-field"></div>
+						</td>
+				</tbody>
+			</table>
+
+			<!-- DW都道府県 -->
+			<div class="card blue mt15">
+				<div class="card-content blue lighten-1">
+					<p class="white-text">国土数値情報ダウンロードサービス　（JPGIS2.1（GML）準拠及びSHAPE形式データ）　データのダウンロード</p>
+				</div>
+			</div>
+			<div class="card mt15">
+				<div class="card-content">
+					<p>選択したデータ項目は、国土数値情報　交通流動量 貨物・旅客地域流動量データ　です。</p>
+				</div>
+			</div>
+			<table class="mb30 responsive-table dataTables">
+				<thead>
+					<tr>
+						<th class="txtCenter">地域</th>
+						<th class="txtCenter">測地系</th>
+						<th class="txtCenter">年度</th>
+						<th class="txtCenter">ファイル容量</th>
+						<th class="txtCenter">ファイル名</th>
+						<th class="txtCenter">ダウンロード</th>
+						<th class="txtCenter  style="width:fit-content"">一括DL
+							<a class="Select_part tooltipped" style="cursor:pointer;position:relative" data-position="top" data-tooltip="全てのデータを選択">
+								<label class="chkLabel-front">
+									<input type="checkbox"  class="filled-in select center-align" disabled="disabled" checked="checked">
+									<span></span>
+								</label>
+								<label class="chkLabel-front chkLabel-back">
+									<input type="checkbox"  class="filled-in blank center-align" disabled="disabled" checked="checked">
+									<span></span>
+								</label>
+							</a>
+							<a class="Clear_part tooltipped" style="cursor:pointer;position:relative;margin-left: 8px;"  data-position="top" data-tooltip="全ての選択を解除">
+								<label class="chkLabel-front">
+									<input type="checkbox"  class="filled-in blank center-align" disabled="disabled">
+									<span></span>
+								</label>
+								<label class="chkLabel-fornt chkLabel-back">
+									<input type="checkbox" class="filled-in blank-back center-align" disabled="disabled">
+									<span></span>
+								</label>
+							</a>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2001年（平成13年）</td>
+						<td class="txtCenter">0.71MB</td>
+						<td class="txtCenter">S05-d-01_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.71MB','S05-d-01_GML.zip','../data/S05-d/S05-d-01/S05-d-01_GML.zip' ,this);">
+								<span id="S05-d-01_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-01_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2002年（平成14年）</td>
+						<td class="txtCenter">0.71MB</td>
+						<td class="txtCenter">S05-d-02_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.71MB','S05-d-02_GML.zip','../data/S05-d/S05-d-02/S05-d-02_GML.zip' ,this);">
+								<span id="S05-d-02_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-02_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2003年（平成15年）</td>
+						<td class="txtCenter">0.71MB</td>
+						<td class="txtCenter">S05-d-03_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.71MB','S05-d-03_GML.zip','../data/S05-d/S05-d-03/S05-d-03_GML.zip' ,this);">
+								<span id="S05-d-03_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-03_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2004年（平成16年）</td>
+						<td class="txtCenter">0.71MB</td>
+						<td class="txtCenter">S05-d-04_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.71MB','S05-d-04_GML.zip','../data/S05-d/S05-d-04/S05-d-04_GML.zip' ,this);">
+								<span id="S05-d-04_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-04_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2005年（平成17年）</td>
+						<td class="txtCenter">0.67MB</td>
+						<td class="txtCenter">S05-d-05_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.67MB','S05-d-05_GML.zip','../data/S05-d/S05-d-05/S05-d-05_GML.zip' ,this);">
+								<span id="S05-d-05_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-05_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2006年（平成18年）</td>
+						<td class="txtCenter">0.67MB</td>
+						<td class="txtCenter">S05-d-06_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.67MB','S05-d-06_GML.zip','../data/S05-d/S05-d-06/S05-d-06_GML.zip' ,this);">
+								<span id="S05-d-06_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-06_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2007年（平成19年）</td>
+						<td class="txtCenter">0.67MB</td>
+						<td class="txtCenter">S05-d-07_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.67MB','S05-d-07_GML.zip','../data/S05-d/S05-d-07/S05-d-07_GML.zip' ,this);">
+								<span id="S05-d-07_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-07_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2008年（平成20年）</td>
+						<td class="txtCenter">0.67MB</td>
+						<td class="txtCenter">S05-d-08_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.67MB','S05-d-08_GML.zip','../data/S05-d/S05-d-08/S05-d-08_GML.zip' ,this);">
+								<span id="S05-d-08_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-08_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2009年（平成21年）</td>
+						<td class="txtCenter">0.67MB</td>
+						<td class="txtCenter">S05-d-09_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.67MB','S05-d-09_GML.zip','../data/S05-d/S05-d-09/S05-d-09_GML.zip' ,this);">
+								<span id="S05-d-09_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-09_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2010年（平成22年）</td>
+						<td class="txtCenter">0.64MB</td>
+						<td class="txtCenter">S05-d-10_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.64MB','S05-d-10_GML.zip','../data/S05-d/S05-d-10/S05-d-10_GML.zip' ,this);">
+								<span id="S05-d-10_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-10_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2011年（平成23年）</td>
+						<td class="txtCenter">0.91MB</td>
+						<td class="txtCenter">S05-d-11-g.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.91MB','S05-d-11-g.zip','../data/S05-d/S05-d-11/S05-d-11-g.zip' ,this);">
+								<span id="S05-d-11-g.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-11-g.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2012年（平成24年）</td>
+						<td class="txtCenter">0.62MB</td>
+						<td class="txtCenter">S05-d-12_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.62MB','S05-d-12_GML.zip','../data/S05-d/S05-d-12/S05-d-12_GML.zip' ,this);">
+								<span id="S05-d-12_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-12_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2013年（平成25年）</td>
+						<td class="txtCenter">0.96MB</td>
+						<td class="txtCenter">S05-d-13_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.96MB','S05-d-13_GML.zip','../data/S05-d/S05-d-13/S05-d-13_GML.zip' ,this);">
+								<span id="S05-d-13_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-13_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2014年（平成26年）</td>
+						<td class="txtCenter">0.95MB</td>
+						<td class="txtCenter">S05-d-14_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.95MB','S05-d-14_GML.zip','../data/S05-d/S05-d-14/S05-d-14_GML.zip' ,this);">
+								<span id="S05-d-14_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-14_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2015年（平成27年）</td>
+						<td class="txtCenter">0.91MB</td>
+						<td class="txtCenter">S05-d-15_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.91MB','S05-d-15_GML.zip','../data/S05-d/S05-d-15/S05-d-15_GML.zip' ,this);">
+								<span id="S05-d-15_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-15_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2016年（平成28年）</td>
+						<td class="txtCenter">0.94MB</td>
+						<td class="txtCenter">S05-d-16_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.94MB','S05-d-16_GML.zip','../data/S05-d/S05-d-16/S05-d-16_GML.zip' ,this);">
+								<span id="S05-d-16_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-16_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2017年（平成29年）</td>
+						<td class="txtCenter">0.99MB</td>
+						<td class="txtCenter">S05-d-17_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.99MB','S05-d-17_GML.zip','../data/S05-d/S05-d-17/S05-d-17_GML.zip' ,this);">
+								<span id="S05-d-17_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-17_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="txtCenter">全国</td>
+						<td class="txtCenter">世界測地系</td>
+						<td class="txtCenter">2018年（平成30年）</td>
+						<td class="txtCenter">0.98MB</td>
+						<td class="txtCenter">S05-d-18_GML.zip</td>
+						<td class="txtCenter">
+							<a class="waves-effect waves-light btn indigo btn_padding" id="menu-button"
+								onclick="javascript:DownLd('0.98MB','S05-d-18_GML.zip','../data/S05-d/S05-d-18/S05-d-18_GML.zip' ,this);">
+								<span id="S05-d-18_GML.zip-open" style="display: block">
+									<i class="material-icons">file_download</i>
+								</span>
+								<span id="S05-d-18_GML.zip-close" style="display: none">
+									<i class="material-icons">star</i>
+								</span>
+							</a>
+						</td>
+						<td class="txtCenter">
+							<label class="chkLabel">
+								<input type="checkbox"  class="filled-in dlFileList center-align">
+									<span></span>
+							</label>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<!-- //DW都道府県 -->
+		</div>
+	</main>
+
+	<div class="DL-baloon">
+		チェックを入れて<br>一括ダウンロード
+			<br><a class="DLBln-close" style="text-decoration:underline;color:dimgrey;cursor:pointer">閉じる</a>
+	</div>
+
+	<p id="List_DL">
+		<a class="tooltipped ListDlBtn" data-position="left" data-tooltip="一括ダウンロード" style="cursor:pointer">
+			<i class="Medium material-icons DL_icon">file_download</i>
+		</a>
+	</p>
+
+	<p id="pageTop">
+		<a class="tooltipped" data-position="left" data-tooltip="ページトップ" href="#">
+			<i class="Medium material-icons">vertical_align_top</i>
+		</a>
+	</p>
+
+
+	<div class="progress-box" style="display: none;">
+		<a class="progress-text">ダウンロード中...</a>
+		<a class="completed-files"></a>
+		<div class="progress" style="width:80%;margin-bottom:0.5rem;">
+			<div class="determinate" style="width: 0%;"></div>
+		</div>
+		<a class="progress-cancel" href="javascript:void(0)" style="text-decoration:underline">キャンセル</a>
+	</div>
+
+	<!-- フッターー -->
+	  <footer class="page-footer blue lighten-5">
+    <div class="container">
+      <div class="row">
+      <!--<div class="col l4 offset-l2 s12">-->
+      <div class="col">
+
+<div class="footer__grid-container">
+<ul id="footer__gird-item1">
+  <li><h5 class="grey-text text-darken-3 footer__grid-title">国土数値情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/index.html">国土数値情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/gml/gml_datalist.html">JPGIS2.1準拠 整備データ一覧</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">国土数値情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/case_studies.html">国土数値情報 活用事例</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_news.html">国土数値情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj_error.html">国土数値情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/error-report/error-report.html">国土数値情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item2">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">位置参照情報</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/cgi-bin/isj/dls/_choose_method.cgi">位置参照情報 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj/index.html">位置参照情報とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_news.html">位置参照情報 新着情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 修正情報</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/isj_error.html">位置参照情報 エラー情報</a></li>
+</ul>
+<ul id="footer__gird-item3">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">国土調査</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">国土調査 データダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/landclassification/download.html">国土調査 GISデータのダウンロード</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/kokjo.html">国土調査とは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo/inspect/inspect.html">土地分類調査</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/kokjo_news.html">水調査</a></li>
+</ul>
+<ul id="footer__gird-item4">
+  <li><h5 class="grey-text text-darken-3 g-footer-title">地図で見る</h5></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/mapmain.html">ウェブマッピングシステムを起動</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/webgis.html">ウェブマッピングシステムとは</a></li>
+  <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/webmapc/WMS_manual.pdf">ウェブマッピングシステム 操作方法</a></li>
+</ul>
+<ul id="footer__gird-item5">
+            <li><h5 class="grey-text text-darken-3 g-footer-title">その他</h5></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/i_news.html">重要なお知らせ一覧</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/first.html">初めての方へ</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/faq.html">よくある質問（FAQ）</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/agreement.html">利用規約</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html">QGIS活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/manual/manual.html#tableau-manual">Tableau活用マニュアル</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/event/event.html">イベント特集</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/manual.html">QGISでの国土数値情報利用方法</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/privacy.html">プライバシーポリシー</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/inquiry.html">お問合せ</a></li>
+            <!-- <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="https://docs.google.com/forms/d/1VfarNUmLFhKzAVWIQNQbfgAdNs1nT2kqTERdBbwq7eo/viewform" target="_blank">ご意見ご感想</a></li> -->
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/sitemap.html">サイトマップ</a></li>
+            <li><a class="grey-text text-darken-3 font95 footer__grid-contents" href="/ksj/other/link.html">リンク</a></li>
+          </ul>
+          </div>
+
+</div>
+      </div>
+    </div>
+
+    <div class="footer-copyright  blue darken-4">
+      <div class="container white-text"> All rights reserved. Copyright(c) National Land Information Division, National Spatial Planning and Regional Policy Bureau, MLIT of Japan </div>
+    </div>
+
+  </footer>
+
+	<script src="../../../ksj/js/gis.js" type="text/javascript">
+
+	</script>
+<script type="text/javascript" async="async" src="/__zenedge/assets/f.js?v=1674207422"></script><script>(function () { var v = 1750989695 * 3.1415926535898; v = Math.floor(v); document.cookie = "__zjc5400="+v+"; expires=Fri, 27 Jun 2025 02:03:33 UTC; path=/"; })()</script></body>
+
+</html>

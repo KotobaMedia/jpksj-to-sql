@@ -8,7 +8,7 @@ mod admini_boundary;
 mod gdal;
 mod load_queue;
 pub mod mapping;
-mod xslx_helpers;
+mod xlsx_helpers;
 mod zip_traversal;
 
 #[derive(Builder)]
