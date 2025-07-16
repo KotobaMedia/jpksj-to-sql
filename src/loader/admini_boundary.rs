@@ -1,5 +1,5 @@
-//! Loader for AdminiBoundary_CD.xslx
-//! This module is responsible for loading the AdminiBoundary_CD.xslx file into the database.
+//! Loader for AdminiBoundary_CD.xlsx
+//! This module is responsible for loading the AdminiBoundary_CD.xlsx file into the database.
 
 use crate::{downloader, metadata::MetadataConnection};
 use anyhow::{Context, Result};
@@ -10,7 +10,7 @@ use tokio_postgres::{types::ToSql, NoTls};
 use unicode_normalization::UnicodeNormalization;
 use url::Url;
 
-use super::xslx_helpers::data_to_string;
+use super::xlsx_helpers::data_to_string;
 
 async fn download_admini_boundary_file() -> Result<downloader::DownloadedFile> {
     let url = Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/AdminiBoundary_CD.xlsx")?;

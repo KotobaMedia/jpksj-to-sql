@@ -8,7 +8,7 @@ use url::Url;
 
 use crate::downloader;
 
-use super::xslx_helpers::data_to_string;
+use super::xlsx_helpers::data_to_string;
 
 #[derive(Builder, Clone, Debug)]
 #[builder(derive(Debug))]
