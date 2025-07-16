@@ -8,11 +8,7 @@ use regex::Regex;
 use std::{fs::File, path::PathBuf};
 use zip::ZipArchive;
 
-fn extract_zip(
-    outdir: &PathBuf,
-    zip_path: &PathBuf,
-    matchers: &Vec<Regex>,
-) -> Result<Vec<PathBuf>> {
+fn extract_zip(outdir: &PathBuf, zip_path: &PathBuf, matcher: &Regex) -> Result<Vec<PathBuf>> {
     let mut out = vec![];
     let file = File::open(zip_path)?;
     let zip_filename = zip_path.file_name().unwrap().to_str().unwrap();
@@ -31,10 +27,10 @@ fn extract_zip(
             std::fs::create_dir_all(&basedir)?;
             std::io::copy(&mut file, &mut File::create(&dest_path)?)?;
             out.extend(
-                extract_zip(&outdir, &dest_path, &matchers)
+                extract_zip(&outdir, &dest_path, &matcher)
                     .with_context(|| format!("when extracting nested {}", dest_path.display()))?,
             );
-        } else if matchers.iter().any(|r| r.is_match(&file_name)) {
+        } else if matcher.is_match(&file_name) {
             if file_name.starts_with("N08-21_GML/utf8/") {
                 // skip this file, it's a duplicate and contains malformed UTF8
                 continue;
@@ -54,46 +50,20 @@ pub async fn matching_shapefiles_in_zip(
 ) -> Result<Vec<PathBuf>> {
     let shp_tmp = tmp.join("shp");
     tokio::fs::create_dir_all(&shp_tmp).await?;
-    let matchers = mapping.shapefile_name_regex.clone();
     let zip_path = zip_path.clone();
+    let matcher = if mapping.identifier == "A33" {
+        // A33 shapefiles don't match the regex, so we'll skip this part and
+        // fall back to the expanded matchers, focusing on Polygon files only
+        Regex::new(r"Po?lygon(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$")
+    } else {
+        Regex::new(r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$")
+    }?;
 
-    let mut all_paths = {
-        let shp_tmp = shp_tmp.clone();
-        let zip_path = zip_path.clone();
-        if mapping.identifier == "A33" {
-            // A33 shapefiles don't match the regex, so we'll skip this part and
-            // fall back to the expanded matchers, focusing on Polygon files only
-            let expanded_matchers = vec![Regex::new(
-                r"Po?lygon(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
-            )?];
-
-            tokio::task::spawn_blocking(move || {
-                extract_zip(&shp_tmp, &zip_path, &expanded_matchers)
-                    .with_context(|| format!("when extracting {}", zip_path.display()))
-            })
-            .await??
-        } else {
-            tokio::task::spawn_blocking(move || {
-                extract_zip(&shp_tmp, &zip_path, &matchers)
-                    .with_context(|| format!("when extracting {}", zip_path.display()))
-            })
-            .await??
-        }
-    };
-
-    if all_paths.is_empty() {
-        println!("No shapefiles found in zip file, expanding matchers...");
-        // since we didn't get any shapefiles this time, let's expand the matchers to see if we can find any
-        let expanded_matchers = vec![Regex::new(
-            r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
-        )?];
-
-        all_paths = tokio::task::spawn_blocking(move || {
-            extract_zip(&shp_tmp, &zip_path, &expanded_matchers)
-                .with_context(|| format!("when extracting {}", zip_path.display()))
-        })
-        .await??;
-    }
+    let all_paths = tokio::task::spawn_blocking(move || {
+        extract_zip(&shp_tmp, &zip_path, &matcher)
+            .with_context(|| format!("when extracting {}", zip_path.display()))
+    })
+    .await??;
 
     // at this point, we have decompressed all shapefiles (and accompanying files)
     // however, we only need the `.shp` files for passing to ogr2ogr
@@ -131,14 +101,9 @@ mod tests {
             name: "name".to_string(),
             version: "version".to_string(),
             data_year: "data_year".to_string(),
-            shapefile_matcher: vec!["A30a5-YY_mmmm_SedimentDisasterAndSnowslide.shp".to_string()],
             field_mappings: vec![],
             original_identifier: "original_identifier".to_string(),
             identifier: "identifier".to_string(),
-            shapefile_name_regex: vec![Regex::new(
-                r"A30a5-\d{2}_\d{4}_SedimentDisasterAndSnowslide(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
-            )
-            .unwrap()],
         };
         let result = matching_shapefiles_in_zip(&tmp, &zip, &mapping).await;
         assert!(result.is_ok());
@@ -155,14 +120,9 @@ mod tests {
             name: "name".to_string(),
             version: "version".to_string(),
             data_year: "data_year".to_string(),
-            shapefile_matcher: vec!["P23a-YY_PP.shp".to_string()],
             field_mappings: vec![],
             original_identifier: "original_identifier".to_string(),
             identifier: "identifier".to_string(),
-            shapefile_name_regex: vec![Regex::new(
-                r"(?:^|/)P23a-\d{2}_\d{2}(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
-            )
-            .unwrap()],
         };
         let result = matching_shapefiles_in_zip(&tmp, &zip, &mapping).await;
         assert!(result.is_ok());

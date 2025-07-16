@@ -23,15 +23,6 @@ pub struct ShapefileMetadata {
     #[allow(dead_code)]
     pub data_year: String, // 令和5年度
 
-    /// シェープファイル名
-    /// （表記中のYYは年次、MMは月、PPは都道府県コード、CCCCCは市区町村コード、AAは支庁コード、mmmmはメッシュコードを示します。）
-    #[allow(dead_code)]
-    #[builder(default = "vec![]")]
-    pub shapefile_matcher: Vec<String>,
-    // // parsed version of shapefile_matcher; computed from shapefile_matcher
-    #[builder(setter(skip), default = "self.create_shapefile_name_regex()?")]
-    pub shapefile_name_regex: Vec<Regex>,
-
     pub field_mappings: Vec<(String, String)>,
 
     /// 元データの識別子
@@ -40,10 +31,6 @@ pub struct ShapefileMetadata {
     /// インポート識別子
     pub identifier: String,
 }
-
-// fn create_shapefile_name_regex(_template_string: String) -> Result<Regex, String> {
-//     Regex::new(r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$").map_err(|e| e.to_string())
-// }
 
 fn format_name(name: &str) -> String {
     let mut formatted_name = name.to_string();
@@ -55,100 +42,18 @@ fn format_name(name: &str) -> String {
     formatted_name
 }
 
-fn create_shapefile_name_regex(template_string: String) -> Result<Regex, String> {
-    let remove_re = Regex::new(r"（[^）]+）").unwrap();
-    let template = remove_re.replace_all(template_string.as_str(), "");
-    let template = template.trim();
-
-    // If the template ends with ".shp" (case‑insensitive), remove it.
-    let base_template = if template.to_lowercase().ends_with(".shp") {
-        // Remove the last 4 characters (".shp")
-        &template[..template.len() - 4]
-    } else {
-        &template
-    };
-
-    // This regex matches only the allowed placeholders.
-    // Note: We deliberately list the tokens so that only these are replaced.
-    let token_pattern = r"(YY|MM|PP|CCCCC|AA|mmmm)";
-    let re = Regex::new(token_pattern).unwrap();
-
-    let mut result = String::from("(?:^|/)");
-    let mut last_index = 0;
-
-    // Iterate over each found token in the template.
-    for mat in re.find_iter(base_template) {
-        // Escape and append the literal text before the token.
-        let escaped = regex::escape(&base_template[last_index..mat.start()]);
-        result.push_str(&escaped);
-
-        // Use the length of the token to determine the number of digits.
-        let token = mat.as_str();
-        let replacement = format!("\\d{{{}}}", token.len());
-        result.push_str(&replacement);
-
-        last_index = mat.end();
-    }
-
-    // Append and escape any trailing literal text.
-    result.push_str(&regex::escape(&base_template[last_index..]));
-    result.push_str(r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$");
-
-    Regex::new(&result).map_err(|e| e.to_string())
-}
-
-impl ShapefileMetadataBuilder {
-    fn create_shapefile_name_regex(&self) -> Result<Vec<Regex>, String> {
-        match &self.shapefile_matcher {
-            None => {
-                return Ok(vec![Regex::new(
-                    r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$",
-                )
-                .unwrap()]);
-            }
-            Some(ref template_strings) => template_strings
-                .iter()
-                .map(|s| create_shapefile_name_regex(s.clone()))
-                .collect(),
-        }
-    }
-}
-
-/// Splits and normalizes a shapefile matcher string into a vector of strings.
-fn split_shapefile_matcher(s: &str) -> Vec<String> {
-    s.replace("\r\n", "\n")
-        .replace("A38-YY_PP_", "A38-YY_") // 医療圏のshapefile名が間違っている
-        .split('\n')
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .collect()
-}
-
 fn should_start_new_metadata_record(
     builder: &ShapefileMetadataBuilder,
     row: &[calamine::Data],
 ) -> bool {
     let cat1 = data_to_string(&row[0]);
     let cat2 = data_to_string(&row[1]);
-    let shapefile_names = data_to_string(&row[5])
-        .map(|s| split_shapefile_matcher(&s))
-        .and_then(|v| if v.is_empty() { None } else { Some(v) });
     let original_identifier = data_to_string(&row[8]);
     let mapping_id = data_to_string(&row[7]);
 
     if let (Some(cat1), Some(cat2)) = (cat1, cat2) {
         if builder.cat1.clone().is_some_and(|s| s != cat1)
             || builder.cat2.clone().is_some_and(|s| s != cat2)
-        {
-            return true;
-        }
-    }
-
-    if let Some(shapefile_names) = shapefile_names {
-        if builder
-            .shapefile_matcher
-            .clone()
-            .is_some_and(|s| s != shapefile_names)
         {
             return true;
         }
@@ -253,11 +158,6 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
         if let Some(data_year) = data_to_string(&row[4]) {
             builder.data_year(data_year);
         }
-        if let Some(shapefile_matcher) = data_to_string(&row[5]) {
-            let mut matchers = builder.shapefile_matcher.clone().unwrap_or(vec![]);
-            matchers.extend(split_shapefile_matcher(&shapefile_matcher));
-            builder.shapefile_matcher(matchers);
-        }
 
         if let Some((field_name, shape_name)) = data_to_string(&row[6]).zip(data_to_string(&row[7]))
         {
@@ -307,10 +207,6 @@ mod tests {
         assert_eq!(metadata.name, "三大都市圏計画区域");
         assert_eq!(metadata.version, "2003年度版");
         assert_eq!(metadata.data_year, "平成15年度");
-        assert_eq!(
-            metadata.shapefile_matcher,
-            vec!["A03-YY_SYUTO-g_ThreeMajorMetroPlanArea.shp"]
-        );
         assert_eq!(metadata.field_mappings.len(), 8);
 
         // find 医療圏
