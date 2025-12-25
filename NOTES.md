@@ -129,5 +129,17 @@ ogr2ogr -f FlatGeobuf a38_1.fgb PG:"$PG_CONN_STR" a38a
 タイル化
 
 ```
-tippecanoe -n "医療圏" -N "3次、2次、1次医療圏のポリゴンデータ" -A "<a href=\"https://nlftp.mlit.go.jp/ksj/other/agreement_01.html\">「国土数値情報(医療圏データ)」(国土交通省)</a>をもとに<a href=\"https://kotobamedia.com\">KotobaMedia株式会社</a>作成" -Z0 -z13 -o a38.pmtiles -Ltier1:./a38_1.fgb -Ltier2:./a38_2.fgb -Ltier3:./a38_3.fgb
+tippecanoe -n "医療圏" -N "3次、2次、1次医療圏のポリゴンデータ" -A "<a href=\"https://nlftp.mlit.go.jp/ksj/other/agreement_01.html\">国土数値情報</a>をもとに<a href=\"https://kotobamedia.com\">KotobaMedia</a>作成" -Z0 -z13 -o a38.pmtiles -Ltier1:./a38_1.fgb -Ltier2:./a38_2.fgb -Ltier3:./a38_3.fgb
+```
+
+# `N03` - 行政区域
+
+```
+cargo run -- --filter-identifiers N03 FlatGeobuf ./tmp/out
+```
+
+タイル化
+
+```
+tippecanoe -n "行政区域" -N "都道府県と市区町村ポリゴンデータ" -A "<a href=\"https://nlftp.mlit.go.jp/ksj/other/agreement_01.html\">国土数値情報</a>をもとに<a href=\"https://kotobamedia.com\">KotobaMedia</a>作成" --coalesce --use-attribute-for-id="全国地方公共団体コード" -aI -f -Z0 -z13 -o n03.pmtiles -Lcity:./tmp/out/n03.fgb -Lpref:./tmp/out/n03_prefecture.fgb
 ```
