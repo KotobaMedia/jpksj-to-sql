@@ -5,8 +5,13 @@ use clap::Parser;
 #[derive(Parser)]
 #[command(version)]
 pub struct Cli {
-    /// Postgresデータベースに接続する文字列。 ogr2ogr に渡されます。冒頭の `PG:` は省略してください。
-    pub postgres_url: String,
+    /// 出力フォーマット（GDAL driver 名、または PostgreSQL を示す文字列）
+    #[arg(value_name = "OUTPUT_FORMAT")]
+    pub output_format: String,
+
+    /// 出力先（PostgreSQL の場合は接続文字列、その他は出力ディレクトリ）
+    #[arg(value_name = "OUTPUT_DESTINATION")]
+    pub output_destination: String,
 
     /// 中間ファイルの保存先 (Zip等)
     /// デフォルトは `./tmp` となります。
@@ -18,10 +23,10 @@ pub struct Cli {
     #[arg(long, default_value = "false")]
     pub skip_download: bool,
 
-    /// 既に存在するテーブルをスキップします
-    /// プロセスが途中で中断された場合、テーブルが中途半端な状態にある可能性があります
-    #[arg(long, default_value = "false")]
-    pub skip_sql_if_exists: bool,
+    /// 既に存在する出力をスキップします
+    /// プロセスが途中で中断された場合、出力が中途半端な状態にある可能性があります
+    #[arg(long, alias = "skip-sql-if-exists")]
+    pub skip_if_exists: bool,
 
     /// 読み込むデータセットの識別子
     /// 指定しない場合は全てのデータセットが読み込まれます

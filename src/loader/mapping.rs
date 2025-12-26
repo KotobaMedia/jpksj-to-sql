@@ -124,6 +124,63 @@ fn split_shapefile_matcher(s: &str) -> Vec<String> {
         .collect()
 }
 
+struct MultiOutputRule {
+    original_identifier: &'static str,
+    outputs: Vec<MultiOutputOutput>,
+}
+
+struct MultiOutputOutput {
+    identifier: &'static str,
+    shapefile_matcher: &'static str,
+    shapefile_name_regex: Regex,
+}
+
+fn multi_output_rules() -> Vec<MultiOutputRule> {
+    vec![MultiOutputRule {
+        original_identifier: "N03",
+        outputs: vec![
+            MultiOutputOutput {
+                identifier: "N03",
+                shapefile_matcher: "N03-YYYYMMDD.shp",
+                shapefile_name_regex: Regex::new(
+                    r"(?i)(?:^|/)N03-\d{8}(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx)$",
+                )
+                .unwrap(),
+            },
+            MultiOutputOutput {
+                identifier: "N03_prefecture",
+                shapefile_matcher: "N03-YYYYMMDD_prefecture.shp",
+                shapefile_name_regex: Regex::new(
+                    r"(?i)(?:^|/)N03-\d{8}_prefecture(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx)$",
+                )
+                .unwrap(),
+            },
+        ],
+    }]
+}
+
+fn apply_multi_output_rules(metadata: ShapefileMetadata) -> Vec<ShapefileMetadata> {
+    for rule in multi_output_rules() {
+        if rule.original_identifier != metadata.original_identifier {
+            continue;
+        }
+
+        return rule
+            .outputs
+            .into_iter()
+            .map(|output| {
+                let mut metadata = metadata.clone();
+                metadata.identifier = output.identifier.to_string();
+                metadata.shapefile_matcher = vec![output.shapefile_matcher.to_string()];
+                metadata.shapefile_name_regex = vec![output.shapefile_name_regex];
+                metadata
+            })
+            .collect();
+    }
+
+    vec![metadata]
+}
+
 fn should_start_new_metadata_record(
     builder: &ShapefileMetadataBuilder,
     row: &[calamine::Data],
@@ -209,7 +266,7 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
 
         if should_start_new_metadata_record(&builder, row) {
             match builder.build() {
-                Ok(metadata) => out.push(metadata),
+                Ok(metadata) => out.extend(apply_multi_output_rules(metadata)),
                 Err(e) => panic!("Error: {}, {:?}", e, builder),
             }
             builder = ShapefileMetadataBuilder::default();
@@ -269,7 +326,7 @@ async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
 
     // last row
     if let Ok(metadata) = builder.build() {
-        out.push(metadata);
+        out.extend(apply_multi_output_rules(metadata));
     }
 
     Ok(out)

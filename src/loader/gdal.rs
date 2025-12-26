@@ -2,11 +2,28 @@ use super::mapping::ShapefileMetadata;
 use anyhow::{anyhow, Context, Result};
 use encoding_rs::{Encoding, SHIFT_JIS, UTF_8};
 use serde_json::Value;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
+pub async fn check_gdal_tools() -> Result<()> {
+    let output = Command::new("ogrinfo")
+        .arg("--version")
+        .output()
+        .await
+        .context("running ogrinfo --version")?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stderr = stderr.trim();
+        if stderr.is_empty() {
+            anyhow::bail!("ogrinfo --version failed with status {}", output.status);
+        }
+        anyhow::bail!("ogrinfo --version failed: {}", stderr);
+    }
+    Ok(())
+}
+
 pub async fn create_vrt(
-    out: &PathBuf,
+    out: &Path,
     shapes: &Vec<PathBuf>,
     metadata: &ShapefileMetadata,
 ) -> Result<()> {
@@ -19,7 +36,9 @@ pub async fn create_vrt(
     // let vrt_path = shape.with_extension("vrt");
 
     let mut fields = String::new();
-    let attributes = get_attribute_list(&shapes[0]).await?;
+    let attributes = get_attribute_list(&shapes[0])
+        .await
+        .with_context(|| format!("when getting attribute list for {}", &shapes[0].display()))?;
     for (field_name, shape_name) in metadata.field_mappings.iter() {
         // ignore attributes in the mapping that are not in the shapefile
         if attributes.iter().find(|&attr| attr == shape_name).is_none() {
@@ -38,7 +57,9 @@ pub async fn create_vrt(
     for shape in shapes {
         let bare_shape = shape.with_extension("");
         let shape_filename = bare_shape.file_name().unwrap().to_str().unwrap();
-        let encoding = detect_encoding(shape).await?;
+        let encoding = detect_encoding(shape)
+            .await
+            .with_context(|| format!("when detecting encoding for {}", &shape.display()))?;
         layers.push_str(&format!(
             r#"
                 <OGRVRTLayer name="{}">
@@ -65,12 +86,14 @@ pub async fn create_vrt(
         layer_name, layers
     );
 
-    tokio::fs::write(&out, vrt).await?;
+    tokio::fs::write(&out, vrt)
+        .await
+        .with_context(|| format!("when writing VRT to {}", &out.display()))?;
 
     Ok(())
 }
 
-pub async fn load_to_postgres(vrt: &PathBuf, postgres_url: &str) -> Result<()> {
+pub async fn load_to_postgres(vrt: &Path, postgres_url: &str) -> Result<()> {
     let mut cmd = Command::new("ogr2ogr");
     let output = cmd
         .arg("-f")
@@ -100,6 +123,27 @@ pub async fn load_to_postgres(vrt: &PathBuf, postgres_url: &str) -> Result<()> {
     Ok(())
 }
 
+pub async fn load_to_file(vrt: &Path, output_path: &Path, driver: &str) -> Result<()> {
+    let mut cmd = Command::new("ogr2ogr");
+    let output = cmd
+        .arg("-f")
+        .arg(driver)
+        .arg("-overwrite")
+        .arg("-nlt")
+        .arg("PROMOTE_TO_MULTI")
+        .arg(output_path)
+        .arg(vrt)
+        .output()
+        .await?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("ogr2ogr failed: {}", stderr);
+    }
+
+    Ok(())
+}
+
 pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
     let layer_name_lower = layer_name.to_lowercase();
     let output = Command::new("ogrinfo")
@@ -114,7 +158,7 @@ pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
     Ok(output.status.success())
 }
 
-async fn get_attribute_list(shape: &PathBuf) -> Result<Vec<String>> {
+async fn get_attribute_list(shape: &Path) -> Result<Vec<String>> {
     let ogrinfo = Command::new("ogrinfo")
         .arg("-json")
         .arg(shape)
@@ -161,7 +205,7 @@ fn bytes_after_successful(data: &Vec<u8>) -> Option<&[u8]> {
         .map(|pos| &data[pos + needle.len()..])
 }
 
-async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
+async fn detect_encoding_fallback(shape: &Path) -> Result<Option<String>> {
     let ogrinfo = Command::new("ogrinfo")
         .arg("-al")
         .arg("-geom=NO")
@@ -190,7 +234,7 @@ async fn detect_encoding_fallback(shape: &PathBuf) -> Result<Option<String>> {
     Ok(None)
 }
 
-async fn detect_encoding_ogrinfo(shape: &PathBuf) -> Result<Option<String>> {
+async fn detect_encoding_ogrinfo(shape: &Path) -> Result<Option<String>> {
     let ogrinfo = Command::new("ogrinfo")
         .arg("-json")
         .arg(shape)
@@ -220,7 +264,7 @@ async fn detect_encoding_ogrinfo(shape: &PathBuf) -> Result<Option<String>> {
     Ok(None)
 }
 
-pub async fn detect_encoding(shape: &PathBuf) -> Result<String> {
+pub async fn detect_encoding(shape: &Path) -> Result<String> {
     let encoding = detect_encoding_ogrinfo(shape).await?;
     if let Some(encoding) = encoding {
         return Ok(encoding);

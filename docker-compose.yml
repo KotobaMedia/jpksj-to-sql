@@ -27,7 +27,7 @@ services:
             - ./tmp:/app/tmp
         environment:
             - DATABASE_URL=host=db user=postgres password=postgres dbname=jpksj
-        command: jpksj-to-sql "host=db user=postgres password=postgres dbname=jpksj"
+        command: jpksj-to-sql postgres "host=db user=postgres password=postgres dbname=jpksj"
         restart: on-failure
 
 volumes:
