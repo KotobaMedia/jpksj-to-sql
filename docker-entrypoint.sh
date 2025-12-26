@@ -19,8 +19,22 @@ wait_for_db() {
 }
 
 # データベース接続文字列が引数で渡された場合は待機する
-if [[ "$2" == host=* ]]; then
-  wait_for_db "$2"
+output_format=""
+connection_arg=""
+
+if [[ "$1" == "jpksj-to-sql" ]]; then
+  output_format="$2"
+  connection_arg="$3"
+else
+  output_format="$1"
+  connection_arg="$2"
+fi
+
+normalized_format=$(echo "$output_format" | tr '[:upper:]' '[:lower:]')
+if [[ "$normalized_format" == "postgres" || "$normalized_format" == "postgresql" || "$normalized_format" == "postgis" || "$normalized_format" == "pg" ]]; then
+  if [[ -n "$connection_arg" && "$connection_arg" == host=* ]]; then
+    wait_for_db "$connection_arg"
+  fi
 fi
 
 # コマンドを実行

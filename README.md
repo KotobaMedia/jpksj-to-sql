@@ -95,14 +95,22 @@
 1. バイナリをダウンロード
 2. PostgreSQL + PostGIS を用意
 3. コマンドを実行:
-   jpksj-to-sql "host=127.0.0.1 dbname=jpksj"
+   jpksj-to-sql postgres "host=127.0.0.1 dbname=jpksj"
 
 バイナリを [最新リリース](https://github.com/keichan34/jpksj-to-sql/releases/) からダウンロードするのがおすすめです。
 
 GDAL 3.9以上必要です (`ogr2ogr` または `ogrinfo` が実行できる環境。 `ogrinfo` は `-limit` 引数使うので、 3.9 が必要です)
 
 ```
-jpksj-to-sql "host=127.0.0.1 dbname=jpksj"
+jpksj-to-sql postgres "host=127.0.0.1 dbname=jpksj"
+```
+
+GeoParquet/GeoJSON/FlatGeobuf で出力する場合は、GDAL driver 名を指定して出力先ディレクトリを渡します:
+
+```
+jpksj-to-sql GeoParquet ./output
+jpksj-to-sql GeoJSON ./output
+jpksj-to-sql FlatGeobuf ./output
 ```
 
 macOS の場合、GitHub Release からダウンロードしたバイナリが Gatekeeper によりブロックされることがあります。その場合は、次のコマンドで実行を許可できます: xattr -d com.apple.quarantine ./jpksj-to-sql
