@@ -117,19 +117,19 @@ ogr2ogr -f FlatGeobuf a40_normalized.fgb PG:"$PG_CONN_STR" a40_normalized
 # `A38` - 医療圏
 
 ```
-# 3次医療圏 (都府県＋北海道6圏)
-ogr2ogr -f FlatGeobuf a38_3.fgb PG:"$PG_CONN_STR" a38c
-# 2次医療圏 (3次より細かい、簡易的な集計データも付与)
-scripts/ogr_groupby.sh ./a38_2.fgb "二次医療圏コード" a38b
-# ogr2ogr -f FlatGeobuf a38_2.fgb PG:"$PG_CONN_STR" a38b
-# 1次医療圏 (2次より更に細かい)
-ogr2ogr -f FlatGeobuf a38_1.fgb PG:"$PG_CONN_STR" a38a
+cargo run -- --filter-identifiers A38 FlatGeobuf ./tmp/out
+```
+
+```
+# 2次医療圏 (簡易的な集計データも付与)
+# ogr_groupby を利用して島等を同じポリゴンに設定する
+scripts/ogr_groupby.sh ./tmp/out/a38b_group.fgb "二次医療圏コード" ./tmp/out/a38b.fgb
 ```
 
 タイル化
 
 ```
-tippecanoe -n "医療圏" -N "3次、2次、1次医療圏のポリゴンデータ" -A "<a href=\"https://nlftp.mlit.go.jp/ksj/other/agreement_01.html\">国土数値情報</a>をもとに<a href=\"https://kotobamedia.com\">KotobaMedia</a>作成" -Z0 -z13 -o a38.pmtiles -Ltier1:./a38_1.fgb -Ltier2:./a38_2.fgb -Ltier3:./a38_3.fgb
+tippecanoe -n "医療圏" -N "3次、2次、1次医療圏のポリゴンデータ" -A "<a href=\"https://tiles.kmproj.com/attribution\">Attribution</a>" -Z0 -z13 -o a38.pmtiles -Ltier1:./tmp/out/a38a.fgb -Ltier2:./tmp/out/a38b_group.fgb -Ltier3:./tmp/out/a38c.fgb
 ```
 
 # `N03` - 行政区域
@@ -141,5 +141,5 @@ cargo run -- --filter-identifiers N03 FlatGeobuf ./tmp/out
 タイル化
 
 ```
-tippecanoe -n "行政区域" -N "都道府県と市区町村ポリゴンデータ" -A "<a href=\"https://nlftp.mlit.go.jp/ksj/other/agreement_01.html\">国土数値情報</a>をもとに<a href=\"https://kotobamedia.com\">KotobaMedia</a>作成" --coalesce --use-attribute-for-id="全国地方公共団体コード" -aI -f -Z0 -z13 -o n03.pmtiles -Lcity:./tmp/out/n03.fgb -Lpref:./tmp/out/n03_prefecture.fgb
+tippecanoe -n "行政区域" -N "都道府県と市区町村ポリゴンデータ" -A "<a href=\"https://tiles.kmproj.com/attribution\">Attribution</a>" --coalesce --use-attribute-for-id="全国地方公共団体コード" -aI -f -Z0 -z13 -o n03.pmtiles -Lcity:./tmp/out/n03.fgb -Lpref:./tmp/out/n03_prefecture.fgb
 ```
