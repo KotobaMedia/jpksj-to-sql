@@ -1,14 +1,14 @@
-// The scraper module is responsible for downloading the data from the website.
+// The scraper module is responsible for downloading the data from the API.
 use anyhow::Result;
 use derive_builder::Builder;
 use std::{fmt, path::PathBuf, sync::Arc};
 
 use crate::downloader::path_for_url;
 
+mod api;
 pub mod data_page;
 mod download_queue;
 pub mod initial;
-mod table_read;
 
 #[derive(Clone)]
 pub struct Dataset {
@@ -53,7 +53,7 @@ impl Scraper {
                 }
             }
 
-            let page_res = data_page::scrape(&initial_item.url, self.year).await;
+            let page_res = data_page::scrape(&initial_item.identifier, self.year).await;
             if let Err(err) = page_res {
                 println!("[ERROR, skipping...] {:?}", err);
                 continue;

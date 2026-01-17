@@ -1,18 +1,17 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
-use bytesize::ByteSize;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use scraper::{selectable::Selectable, Html, Selector};
+use scraper::{Html, Selector};
 use serde::Serialize;
 use url::Url;
 
-use super::table_read::{parse_table, parsed_to_string_array};
+use super::api;
 
 // Compile the regex once for efficiency.
-// This regex looks for one or more digits at the very start of the string, immediately followed by '年'.
-static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)年").unwrap());
+// This regex looks for one or more digits at the very start of the string.
+static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)(?:年|年度)?").unwrap());
 
 #[derive(Debug, Serialize)]
 pub struct DataPage {
@@ -31,115 +30,133 @@ pub struct DataItem {
     pub file_url: Url,
 }
 
-pub async fn scrape(url: &Url, year: Option<u32>) -> Result<DataPage> {
-    let response = reqwest::get(url.clone()).await?;
-    let body = response.text().await?;
-    let document = Html::parse_document(&body);
-
-    let metadata = extract_metadata(&document, &url)
+pub async fn scrape(identifier: &str, year: Option<u32>) -> Result<DataPage> {
+    let dataset = api::fetch_dataset_detail(identifier)
         .await
-        .with_context(|| format!("when accessing {}", url.to_string()))?;
+        .with_context(|| format!("when requesting dataset detail for {}", identifier))?;
 
-    let table_sel =
-        Selector::parse("table.dataTables, table.dataTables-mesh, table.dataTables_e").unwrap();
-    let thead_tr_sel = Selector::parse("thead tr").unwrap();
-    let tbody_tr_sel = Selector::parse("tbody tr").unwrap();
-    let data_path_re = Regex::new(r"javascript:DownLd\('[^']*',\s*'[^']*',\s*'([^']+)'").unwrap();
+    let Some(version) = select_version(&dataset.versions, year) else {
+        return Err(anyhow!("No versions found for {}", identifier));
+    };
 
-    let mut items: Vec<DataItem> = Vec::new();
-    let mut use_nendo = false;
+    let version_detail = api::fetch_dataset_version(identifier, &version.id)
+        .await
+        .with_context(|| {
+            format!(
+                "when requesting dataset version detail for {} {}",
+                identifier, version.id
+            )
+        })?;
 
-    let table = document.select(&table_sel).next().unwrap();
-    let header_row = table
-        .select(&thead_tr_sel)
-        .next()
-        .expect("No header row found in thead!");
-    let mut header_map = HashMap::new();
-    for (i, th) in header_row
-        .select(&Selector::parse("th").unwrap())
-        .enumerate()
-    {
-        let col_name = th.text().collect::<String>().trim().to_string();
-        if col_name.contains("年度") {
-            use_nendo = true;
-        }
-        header_map.insert(col_name, i);
-    }
+    let metadata = build_metadata_from_api(&dataset, &version_detail).await?;
 
-    for row in table.select(&tbody_tr_sel) {
-        let tds = row
-            .select(&Selector::parse("td").unwrap())
-            .collect::<Vec<_>>();
-
-        let area = tds[*header_map.get("地域").unwrap()]
-            .text()
-            .collect::<String>()
-            .trim()
-            .to_string();
-        let crs = tds[*header_map.get("測地系").unwrap()]
-            .text()
-            .collect::<String>()
-            .trim()
-            .to_string();
-        let year_col = header_map.get("年度").or_else(|| header_map.get("年"));
-        let year_str = year_col
-            .and_then(|&idx| tds.get(idx))
-            .map(|td| td.text().collect::<String>().trim().to_string())
-            .unwrap_or_default();
-
-        let (year, nendo) = if use_nendo {
-            (None, Some(year_str.clone()))
-        } else {
-            (Some(year_str.clone()), None)
-        };
-
-        let bytes_str = header_map
-            .get("ファイル容量")
-            .and_then(|&idx| tds.get(idx))
-            .and_then(|td| td.text().next())
-            .map(|s| s.to_string());
-        let file_js_onclick = header_map
-            .get("ダウンロード")
-            .and_then(|&idx| tds.get(idx))
-            .and_then(|td| td.select(&Selector::parse("a").unwrap()).next())
-            .and_then(|a| a.value().attr("onclick"));
-
-        let Some(bytes_str) = bytes_str else {
-            continue;
-        };
-        // if we couldn't parse the bytes, we'll just use 10MB as a default. It's just used for progress.
-        let bytes: ByteSize = bytes_str.parse().unwrap_or_else(|_| ByteSize::mb(10));
-        let Some(file_js_onclick) = file_js_onclick else {
-            // panic!("file_js_onclick not found: {:?}", tds[5].html());
-            continue;
-        };
-        let Some(file_url) = data_path_re
-            .captures(file_js_onclick)
-            .map(|c| c.get(1).unwrap().as_str())
-            .map(|s| url.join(s).unwrap())
-        else {
-            // panic!("file_url not found: {:?}", file_js_onclick);
-            continue;
-        };
-
-        let item = DataItem {
-            area,
-            bytes: bytes.0,
-            crs,
-            year,
-            nendo,
-            file_url,
-        };
-        items.push(item);
-    }
+    let mut items: Vec<DataItem> = version_detail
+        .files
+        .into_iter()
+        .map(|file| {
+            let year_str = file
+                .year
+                .filter(|y| *y > 0)
+                .map(|y| format!("{}年", y));
+            DataItem {
+                area: file.area,
+                crs: String::new(),
+                bytes: file.bytes,
+                year: year_str,
+                nendo: None,
+                file_url: file.file_url,
+            }
+        })
+        .collect();
 
     items = filter_data_items(items, year);
 
     Ok(DataPage {
-        url: url.clone(),
+        url: version.source_url.clone(),
         items,
         metadata,
     })
+}
+
+fn select_version<'a>(
+    versions: &'a [api::DatasetDetailVersion],
+    year: Option<u32>,
+) -> Option<&'a api::DatasetDetailVersion> {
+    if let Some(target_year) = year {
+        if let Some(version) = versions
+            .iter()
+            .find(|v| target_year >= v.start_year && target_year <= v.end_year)
+        {
+            return Some(version);
+        }
+    }
+
+    versions
+        .iter()
+        .find(|v| v.most_recent)
+        .or_else(|| versions.first())
+}
+
+async fn build_metadata_from_api(
+    dataset: &api::DatasetDetail,
+    version_detail: &api::DatasetVersionDetail,
+) -> Result<DataPageMetadata> {
+    let mut metadata = DataPageMetadata::default();
+
+    let mut content_parts: Vec<String> = Vec::new();
+    for variant in &version_detail.variants {
+        if let Some(desc) = variant.geometry_description.as_ref() {
+            let trimmed = desc.trim();
+            if !trimmed.is_empty() {
+                content_parts.push(trimmed.to_string());
+            }
+        }
+    }
+
+    let content = if !content_parts.is_empty() {
+        content_parts.join(" / ")
+    } else if !version_detail.description.trim().is_empty() {
+        version_detail.description.trim().to_string()
+    } else if !dataset.description.trim().is_empty() {
+        dataset.description.trim().to_string()
+    } else {
+        dataset.name.trim().to_string()
+    };
+
+    metadata
+        .fundamental
+        .insert("内容".to_string(), content);
+
+    let mut attr_map: HashMap<String, AttributeMetadata> = HashMap::new();
+    for variant in &version_detail.variants {
+        for attr in &variant.attributes {
+            attr_map.insert(
+                attr.attribute_name.clone(),
+                AttributeMetadata {
+                    name: attr.readable_name.clone(),
+                    description: attr.description.clone(),
+                    attr_type: attr.attr_type.clone(),
+                    ref_url: attr.type_ref_url.clone(),
+                    r#ref: None,
+                },
+            );
+        }
+    }
+    metadata.attribute = attr_map;
+
+    for attr in metadata.attribute.values_mut() {
+        if let Some(ref_url) = &attr.ref_url {
+            if ref_url.to_string().contains(".xlsx") {
+                // AdminiBoundary_CD.xlsx is handled separately in admini_boundary.rs
+                continue;
+            }
+            attr.r#ref = parse_ref_from_url(ref_url)
+                .await
+                .with_context(|| format!("when accessing ref url: {}", ref_url))?;
+        }
+    }
+
+    Ok(metadata)
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -265,168 +282,12 @@ pub struct DataPageMetadata {
     pub attribute: HashMap<String, AttributeMetadata>,
 }
 
-async fn extract_metadata<'a, S: Selectable<'a>>(
-    html: S,
-    base_url: &Url,
-) -> Result<DataPageMetadata> {
-    let mut metadata = DataPageMetadata::default();
-    let table_sel = Selector::parse("table").unwrap();
-    let t_cell_sel = Selector::parse("th, td").unwrap();
-    let tables: Vec<scraper::ElementRef<'a>> = html.select(&table_sel).collect();
-
-    let strip_space_re = Regex::new(r"\s+").unwrap();
-
-    // 「更新履歴」や「内容」が入っているtableを探す
-    let fundamental_table = tables
-        .iter()
-        .find(|table| {
-            let headers: Vec<String> = table
-                .select(&t_cell_sel)
-                .map(|th| th.text().collect::<String>().trim().to_string())
-                .collect();
-            headers
-                .iter()
-                .any(|h| h.contains("更新履歴") || h.contains("内容"))
-        })
-        .ok_or_else(|| anyhow!("基本情報の table が見つかりませんでした"))?
-        .clone();
-    let fundamental_parsed = parse_table(fundamental_table);
-    let fundamental_parsed_str = parsed_to_string_array(fundamental_parsed);
-    // println!("{:?}", fundamental_parsed);
-    for row in fundamental_parsed_str.outer_iter() {
-        if row.len() < 2 {
-            continue;
-        }
-        let key = row[0].as_ref().unwrap().trim().to_string();
-        let mut value = row[1].as_ref().unwrap().trim().to_string();
-        value = strip_space_re.replace_all(&value, " ").to_string();
-        metadata.fundamental.insert(key, value);
-    }
-
-    if metadata.fundamental.is_empty() {
-        return Err(anyhow!("基本情報が見つかりませんでした"));
-    }
-
-    // ※シェープファイルの属性名の後ろに「▲」を付与している項目は、属性値無しのときは、空欄でなく半角アンダーライン（ _ ）を記述している。
-    // TODO: この処理をハンドリングする?
-    let attr_key_regex = Regex::new(r"^(.*?)\s*[（(]([a-zA-Z0-9-_]+)▲?[）)]$").unwrap();
-
-    // 「属性情報」や「属性名」が入っているtableを探す
-    metadata.attribute = tables
-        .iter()
-        .find_map(|table| {
-            // ignore this table if it has any tables inside of it
-            if table.select(&table_sel).count() > 1 {
-                return None;
-            }
-
-            let parsed = parse_table(table.clone());
-            // 属性名、説明、属性型
-            let mut attr_indices: Option<(usize, usize, usize)> = None;
-
-            let mut attr_map: HashMap<String, AttributeMetadata> = HashMap::new();
-
-            for row in parsed.outer_iter() {
-                if row.len() < 3 {
-                    continue;
-                }
-                // we've already recognized the indices for the attribute table
-                if let Some((attr_name_idx, desc_idx, type_idx)) = attr_indices {
-                    // println!("Looking at row: {:?}", row);
-                    let attr_name_str = row[attr_name_idx]
-                        .as_ref()?
-                        .text()
-                        .collect::<String>()
-                        .trim()
-                        .to_string();
-                    let Some(name_match) = attr_key_regex.captures(&attr_name_str) else {
-                        continue;
-                    };
-                    let name_jp = name_match.get(1).unwrap();
-                    let name_id = name_match.get(2).unwrap();
-
-                    let mut description = row[desc_idx]
-                        .as_ref()?
-                        .text()
-                        .collect::<String>()
-                        .trim()
-                        .to_string();
-                    description = strip_space_re.replace_all(&description, " ").to_string();
-                    let attr_type_ele = row[type_idx].as_ref().unwrap();
-                    let mut attr_type_str =
-                        attr_type_ele.text().collect::<String>().trim().to_string();
-                    attr_type_str = strip_space_re.replace_all(&attr_type_str, " ").to_string();
-
-                    let mut ref_url = None;
-                    if let Some(a) = attr_type_ele.select(&Selector::parse("a").unwrap()).next() {
-                        let href = a.value().attr("href").unwrap();
-                        ref_url = Some(base_url.join(href).unwrap());
-                    }
-
-                    attr_map.insert(
-                        name_id.as_str().to_string(),
-                        AttributeMetadata {
-                            name: name_jp.as_str().to_string(),
-                            description,
-                            attr_type: attr_type_str,
-                            ref_url,
-                            r#ref: None,
-                        },
-                    );
-                } else {
-                    let mut attr_name: Option<usize> = None;
-                    let mut attr_desc: Option<usize> = None;
-                    let mut attr_type: Option<usize> = None;
-                    for (i, cell) in row.iter().enumerate() {
-                        let Some(cell) = cell.as_ref() else {
-                            continue;
-                        };
-                        let cell_str = cell.text().collect::<String>().trim().to_string();
-                        if cell_str.contains("属性名") {
-                            attr_name = Some(i);
-                        } else if cell_str.contains("説明") {
-                            attr_desc = Some(i);
-                        } else if cell_str.contains("属性の型") || cell_str.contains("属性型")
-                        {
-                            attr_type = Some(i);
-                        }
-                        if attr_name.is_some() && attr_desc.is_some() && attr_type.is_some() {
-                            attr_indices =
-                                Some((attr_name.unwrap(), attr_desc.unwrap(), attr_type.unwrap()));
-                            // println!("Found cell indices: {:?}", attr_indices);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if attr_map.is_empty() {
-                return None;
-            }
-            Some(attr_map)
-        })
-        .ok_or_else(|| anyhow!("属性情報の table が見つかりませんでした"))?;
-
-    for attr in metadata.attribute.values_mut() {
-        if let Some(ref_url) = &attr.ref_url {
-            if ref_url.to_string().contains(".xlsx") {
-                // AdminiBoundary_CD.xlsx は admini_boundary.rs で対応済み
-                continue;
-            }
-            attr.r#ref = parse_ref_from_url(&ref_url)
-                .await
-                .with_context(|| format!("when accessing ref url: {}", &ref_url))?;
-        }
-    }
-
-    Ok(metadata)
-}
-
 /// Extracts the numeric year from a field formatted like "2006年（平成18年）".
 /// If the field does not match, returns None.
 fn extract_year_from_field(field: &str) -> Option<u32> {
+    let trimmed = field.trim();
     YEAR_REGEX
-        .captures(field)
+        .captures(trimmed)
         .and_then(|caps| caps.get(1))
         .and_then(|m| m.as_str().parse::<u32>().ok())
 }
@@ -453,10 +314,10 @@ fn parse_recency(item: &DataItem) -> Option<u32> {
  * ない場合はそのまま帰す（殆どの場合は都道府県別）
  */
 fn filter_data_items(items: Vec<DataItem>, year: Option<u32>) -> Vec<DataItem> {
-    // Step 1: Filter items by CRS.
+    // Step 1: Filter items by CRS if it is known.
     let crs_filtered: Vec<DataItem> = items
         .into_iter()
-        .filter(|item| item.crs == "世界測地系")
+        .filter(|item| item.crs.is_empty() || item.crs == "世界測地系")
         .collect();
 
     // Step 2: Group items by area.
@@ -495,30 +356,23 @@ mod tests {
 
     #[tokio::test]
     async fn test_scrape_c23() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C23.html").unwrap();
-        let page = scrape(&url, None).await.unwrap();
+        let page = scrape("C23", None).await.unwrap();
         assert_eq!(page.items.len(), 39);
     }
 
     #[tokio::test]
     async fn test_scrape_n03() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html").unwrap();
-        let page = scrape(&url, None).await.unwrap();
+        let page = scrape("N03", Some(2024)).await.unwrap();
         // 全国パターン
         assert_eq!(page.items.len(), 1);
 
         let naiyo = page.metadata.fundamental.get("内容").unwrap();
-        assert!(naiyo.contains("全国の行政界について、都道府県名、"));
-
-        let zahyoukei = page.metadata.fundamental.get("座標系").unwrap();
-        assert!(zahyoukei.contains("世界測地系"));
+        assert!(naiyo.contains("行政界"));
 
         let todoufukenmei = page.metadata.attribute.get("N03_001").unwrap();
         assert!(todoufukenmei.name.contains("都道府県名"));
-        assert!(todoufukenmei.description.contains("都道府県の名称"));
-        assert!(todoufukenmei.attr_type.contains("文字列"));
+        assert!(todoufukenmei.description.contains("都道府県"));
+        assert!(todoufukenmei.attr_type.contains("CharacterString"));
 
         let lg_code = page.metadata.attribute.get("N03_007").unwrap();
         assert!(lg_code.name.contains("全国地方公共団体コード"));
@@ -532,9 +386,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_scrape_a27() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A27-2023.html").unwrap();
-        let page = scrape(&url, None).await.unwrap();
+        let page = scrape("A27", Some(2023)).await.unwrap();
         // 全国パターン
         assert_eq!(page.items.len(), 1);
 
@@ -552,9 +404,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_scrape_a38() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A38-2020.html").unwrap();
-        let page = scrape(&url, None).await.unwrap();
+        let page = scrape("A38", Some(2020)).await.unwrap();
         // 全国パターン
         assert_eq!(page.items.len(), 1);
 
@@ -659,7 +509,7 @@ mod tests {
                     ("1", "0m 以上 0.5m 未満"),
                     ("6", "20.0m 以上"),
                 ]),
-            }
+            },
         ];
 
         for test_case in test_cases {
@@ -669,9 +519,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_scrape_specific_year() {
-        let url =
-            Url::parse("https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A29-2019.html").unwrap();
-        let page = scrape(&url, Some(2011)).await.unwrap();
+        let page = scrape("N03", Some(2011)).await.unwrap();
+        assert!(!page.items.is_empty());
         for item in page.items {
             let year = parse_recency(&item).unwrap();
             assert_eq!(year, 2011);

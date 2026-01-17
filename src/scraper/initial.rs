@@ -1,7 +1,8 @@
-use anyhow::{anyhow, Result};
-use regex::Regex;
+use anyhow::{Context, Result};
 use serde::Serialize;
 use url::Url;
+
+use crate::scraper::api;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct DataItem {
@@ -24,91 +25,28 @@ pub struct ScrapeResult {
     pub data: Vec<DataItem>,
 }
 
-fn extract_identifier_from_metadata_url(url: &str) -> Result<String> {
-    let re = Regex::new(r"/meta/([a-zA-Z0-9-]+)/")?;
-    let captures = re
-        .captures(url)
-        .ok_or_else(|| anyhow!("Couldn't extract identifier from {}", url))?;
-    let identifier = captures.get(1).unwrap().as_str().to_string();
-    Ok(identifier)
-}
-
 pub async fn scrape() -> Result<ScrapeResult> {
-    let root_url = Url::parse("https://nlftp.mlit.go.jp/ksj/gml/gml_datalist.html")?;
-    let mut data: Vec<DataItem> = vec![];
-    let response = reqwest::get(root_url.clone()).await?;
-    let body = response.text().await?;
-    let document = scraper::Html::parse_document(&body);
-    let collapse_sel = scraper::Selector::parse("ul.collapsible").unwrap();
-    let category1_re = Regex::new(r"\d(?:\.\s*)?([^\s]+)").unwrap();
-    for collapse in document.select(&collapse_sel) {
-        let header_sel = scraper::Selector::parse(".collapsible-header").unwrap();
-        let Some(header) = collapse.select(&header_sel).next() else {
-            continue;
-        };
-        let category1_txt = header.text().collect::<String>().trim().to_string();
-        let Some(category1_name) = category1_re
-            .captures(&category1_txt)
-            .map(|c| c.get(1).unwrap().as_str())
-        else {
-            continue;
-        };
+    let datasets = api::fetch_dataset_list()
+        .await
+        .context("when requesting dataset list from JPKSJ API")?;
 
-        let table_tr_sel = scraper::Selector::parse("table tr").unwrap();
-        let mut category2_name: Option<String> = None;
-        for tr in collapse.select(&table_tr_sel) {
-            let td_sel = scraper::Selector::parse("td").unwrap();
-            let a_sel = scraper::Selector::parse("a").unwrap();
-            let tds = tr.select(&td_sel).collect::<Vec<_>>();
-            if tds.len() == 0 {
-                continue;
-            }
-            let name_td = &tds[0];
-            let name = name_td.text().collect::<String>().trim().to_string();
-            if name.starts_with("【") {
-                category2_name = Some(name);
-                continue;
-            }
-            let Some(url_str) = name_td.select(&a_sel).next().and_then(|u| u.attr("href")) else {
-                continue;
-            };
-            let url = root_url.join(url_str)?;
-
-            let data_source = tds[2].text().collect::<String>().trim().to_string();
-            let data_accuracy = tds[3].text().collect::<String>().trim().to_string();
-            let identifier: String;
-            let metadata_xml_url: Url;
-            if let Some(url) = tds[4].select(&a_sel).next().and_then(|a| a.attr("href")) {
-                identifier = extract_identifier_from_metadata_url(&url)?;
-                metadata_xml_url = root_url.join(url)?;
-            } else {
-                continue;
-            }
-            let usage = tds[5]
-                .select(&a_sel)
-                .next()
-                .unwrap()
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_string();
-
-            data.push(DataItem {
-                category1_name: category1_name.to_string(),
-                category2_name: category2_name.clone().unwrap_or_default(),
-                name,
-                data_source,
-                data_accuracy,
-                metadata_xml: metadata_xml_url,
-                usage,
-                url,
-                identifier,
-            });
-        }
-    }
+    let data = datasets
+        .into_iter()
+        .map(|item| DataItem {
+            category1_name: item.category1_name,
+            category2_name: item.category2_name,
+            name: item.name,
+            data_source: String::new(),
+            data_accuracy: String::new(),
+            metadata_xml: item.source_url.clone(),
+            usage: String::new(),
+            url: item.source_url,
+            identifier: item.id,
+        })
+        .collect::<Vec<_>>();
 
     Ok(ScrapeResult {
-        url: root_url,
+        url: api::dataset_list_url()?,
         data,
     })
 }
