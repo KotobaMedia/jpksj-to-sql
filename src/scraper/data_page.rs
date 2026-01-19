@@ -12,11 +12,35 @@ use super::api;
 // This regex looks for one or more digits at the very start of the string.
 static YEAR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(\d+)(?:年|年度)?").unwrap());
 
+#[derive(Debug, Clone, Serialize)]
+pub struct VariantAttribute {
+    pub readable_name: String,
+    pub attribute_name: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct VariantMetadata {
+    pub variant_name: String,
+    pub variant_identifier: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shapefile_hint: Option<String>,
+    pub attributes: Vec<VariantAttribute>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DataPageVersion {
+    pub id: String,
+    pub start_year: u32,
+    pub end_year: u32,
+}
+
 #[derive(Debug, Serialize)]
 pub struct DataPage {
     pub url: Url,
     pub items: Vec<DataItem>,
     pub metadata: DataPageMetadata,
+    pub variants: Vec<VariantMetadata>,
+    pub version: DataPageVersion,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -49,6 +73,30 @@ pub async fn scrape(identifier: &str, year: Option<u32>) -> Result<DataPage> {
 
     let metadata = build_metadata_from_api(&dataset, &version_detail).await?;
 
+    let variants = version_detail
+        .variants
+        .iter()
+        .map(|variant| VariantMetadata {
+            variant_name: variant.variant_name.clone(),
+            variant_identifier: variant.variant_identifier.clone(),
+            shapefile_hint: variant.shapefile_hint.clone(),
+            attributes: variant
+                .attributes
+                .iter()
+                .map(|attr| VariantAttribute {
+                    readable_name: attr.readable_name.clone(),
+                    attribute_name: attr.attribute_name.clone(),
+                })
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+
+    let version_info = DataPageVersion {
+        id: version.id.clone(),
+        start_year: version.start_year,
+        end_year: version.end_year,
+    };
+
     let mut items: Vec<DataItem> = version_detail
         .files
         .into_iter()
@@ -74,6 +122,8 @@ pub async fn scrape(identifier: &str, year: Option<u32>) -> Result<DataPage> {
         url: version.source_url.clone(),
         items,
         metadata,
+        variants,
+        version: version_info,
     })
 }
 

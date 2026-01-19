@@ -1,14 +1,9 @@
-use anyhow::Result;
-use calamine::{Reader, Xlsx};
+use anyhow::{Context, Result};
 use derive_builder::Builder;
 use regex::Regex;
-use std::vec;
-use tokio::sync::OnceCell;
-use url::Url;
 
-use crate::downloader;
-
-use super::xslx_helpers::data_to_string;
+use crate::scraper::data_page::{DataPageMetadata, VariantMetadata};
+use crate::scraper::Dataset;
 
 #[derive(Builder, Clone, Debug)]
 #[builder(derive(Debug))]
@@ -41,10 +36,6 @@ pub struct ShapefileMetadata {
     pub identifier: String,
 }
 
-// fn create_shapefile_name_regex(_template_string: String) -> Result<Regex, String> {
-//     Regex::new(r"(?i:(?:\.shp|\.cpg|\.dbf|\.prj|\.qmd|\.shx))$").map_err(|e| e.to_string())
-// }
-
 fn format_name(name: &str) -> String {
     let mut formatted_name = name.to_string();
     // Remove any parentheses and their contents
@@ -60,7 +51,7 @@ fn create_shapefile_name_regex(template_string: String) -> Result<Regex, String>
     let template = remove_re.replace_all(template_string.as_str(), "");
     let template = template.trim();
 
-    // If the template ends with ".shp" (case‑insensitive), remove it.
+    // If the template ends with ".shp" (case-insensitive), remove it.
     let base_template = if template.to_lowercase().ends_with(".shp") {
         // Remove the last 4 characters (".shp")
         &template[..template.len() - 4]
@@ -181,204 +172,136 @@ fn apply_multi_output_rules(metadata: ShapefileMetadata) -> Vec<ShapefileMetadat
     vec![metadata]
 }
 
-fn should_start_new_metadata_record(
-    builder: &ShapefileMetadataBuilder,
-    row: &[calamine::Data],
-) -> bool {
-    let cat1 = data_to_string(&row[0]);
-    let cat2 = data_to_string(&row[1]);
-    let shapefile_names = data_to_string(&row[5])
-        .map(|s| split_shapefile_matcher(&s))
-        .and_then(|v| if v.is_empty() { None } else { Some(v) });
-    let original_identifier = data_to_string(&row[8]);
-    let mapping_id = data_to_string(&row[7]);
-
-    if let (Some(cat1), Some(cat2)) = (cat1, cat2) {
-        if builder.cat1.clone().is_some_and(|s| s != cat1)
-            || builder.cat2.clone().is_some_and(|s| s != cat2)
-        {
-            return true;
-        }
-    }
-
-    if let Some(shapefile_names) = shapefile_names {
-        if builder
-            .shapefile_matcher
-            .clone()
-            .is_some_and(|s| s != shapefile_names)
-        {
-            return true;
-        }
-    }
-
-    if let (Some(identifier), Some(mapping_id)) = (original_identifier, mapping_id) {
-        // 例外: 医療圏。１，２，３次医療圏はそれぞれ別テーブルとして扱う。
-        // -> 識別子はそれぞれA38だが、属性コードの頭4文字が異なる（A38a, A38b, A38c）
-        if identifier == "A38"
-            && builder.field_mappings.as_ref().is_some_and(|m| {
-                m.last().is_some_and(|(_, prev_mapping_id)| {
-                    !mapping_id.starts_with(&prev_mapping_id.chars().take(4).collect::<String>())
-                })
-            })
-        {
-            return true;
-        }
-    }
-    false
+fn field_mappings_from_variant(variant: &VariantMetadata) -> Vec<(String, String)> {
+    variant
+        .attributes
+        .iter()
+        .filter_map(|attr| {
+            let field_name = attr.readable_name.trim();
+            let shape_name = attr.attribute_name.trim();
+            if field_name.is_empty() || shape_name.is_empty() {
+                return None;
+            }
+            Some((field_name.to_string(), shape_name.to_string()))
+        })
+        .collect()
 }
 
-fn extract_identifier_from_row(row: &[calamine::Data]) -> Option<String> {
-    let identifier = data_to_string(&row[8]);
-    if let Some(ref id) = identifier {
-        if id == "A38" {
-            if let Some(mapping_id) = data_to_string(&row[7]) {
-                // Take the first 4 characters of mapping_id, or the whole string if shorter
-                return Some(mapping_id.chars().take(4).collect());
+fn field_mappings_from_metadata(metadata: &DataPageMetadata) -> Vec<(String, String)> {
+    let mut mappings = metadata
+        .attribute
+        .iter()
+        .filter_map(|(attribute_name, attr)| {
+            let field_name = attr.name.trim();
+            let shape_name = attribute_name.trim();
+            if field_name.is_empty() || shape_name.is_empty() {
+                return None;
             }
-        }
+            Some((field_name.to_string(), shape_name.to_string()))
+        })
+        .collect::<Vec<_>>();
+
+    mappings.sort_by(|a, b| a.1.cmp(&b.1));
+    mappings
+}
+
+fn fallback_variant(dataset: &Dataset) -> VariantMetadata {
+    VariantMetadata {
+        variant_name: dataset.initial_item.name.clone(),
+        variant_identifier: dataset.initial_item.identifier.clone(),
+        shapefile_hint: None,
+        attributes: vec![],
     }
-    identifier
 }
 
-async fn download_mapping_definition_file() -> Result<downloader::DownloadedFile> {
-    let url = Url::parse("https://nlftp.mlit.go.jp/ksj/gml/codelist/shape_property_table2.xlsx")?;
-    downloader::download_to_tmp(&url).await
-}
+pub async fn mapping_defs_for_dataset(dataset: &Dataset) -> Result<Vec<ShapefileMetadata>> {
+    let original_identifier = dataset.initial_item.identifier.clone();
+    let mut variants = dataset.page.variants.clone();
+    if variants.is_empty() {
+        variants.push(fallback_variant(dataset));
+    }
 
-async fn parse_mapping_file() -> Result<Vec<ShapefileMetadata>> {
-    let file = download_mapping_definition_file().await?;
-    let path = file.path;
-    let mut workbook: Xlsx<_> = calamine::open_workbook(&path)?;
-    let mut out: Vec<ShapefileMetadata> = Vec::new();
-    let sheet = workbook.worksheet_range("全データ")?;
-    let mut data_started = false;
-
-    let mut builder = ShapefileMetadataBuilder::default();
-    for row in sheet.rows() {
-        let cat1 = data_to_string(&row[0]);
-
-        if !data_started {
-            if cat1.is_some_and(|s| s == "大分類") {
-                data_started = true;
-            }
-            continue;
+    let mut mappings = Vec::new();
+    for variant in variants {
+        let mut field_mappings = field_mappings_from_variant(&variant);
+        if field_mappings.is_empty() {
+            field_mappings = field_mappings_from_metadata(&dataset.page.metadata);
         }
 
-        if should_start_new_metadata_record(&builder, row) {
-            match builder.build() {
-                Ok(metadata) => out.extend(apply_multi_output_rules(metadata)),
-                Err(e) => panic!("Error: {}, {:?}", e, builder),
-            }
-            builder = ShapefileMetadataBuilder::default();
-        }
+        let name = if variant.variant_name.trim().is_empty() {
+            dataset.initial_item.name.clone()
+        } else {
+            variant.variant_name.clone()
+        };
 
-        if let Some(original_identifier) = data_to_string(&row[8]) {
-            if builder.original_identifier.is_none() {
-                builder.original_identifier(original_identifier);
-            }
-        }
-        if let Some(identifier) = extract_identifier_from_row(row) {
-            if builder.identifier.is_none() {
-                builder.identifier(identifier.clone());
-            }
+        let identifier = if variant.variant_identifier.trim().is_empty() {
+            original_identifier.clone()
+        } else {
+            variant.variant_identifier.clone()
+        };
 
-            let name_override = match identifier.as_str() {
-                "A38a" => Some("一次医療圏"),
-                "A38b" => Some("二次医療圏"),
-                "A38c" => Some("三次医療圏"),
-                _ => None,
-            };
-            if let Some(name) = name_override {
-                builder.name(name.to_string());
-            }
-        }
+        let mut builder = ShapefileMetadataBuilder::default();
+        builder.cat1(dataset.initial_item.category1_name.clone());
+        builder.cat2(dataset.initial_item.category2_name.clone());
+        builder.name(format_name(&name));
+        builder.version(format!(
+            "{}-{}",
+            dataset.page.version.start_year, dataset.page.version.end_year
+        ));
+        builder.data_year(dataset.page.version.end_year.to_string());
+        builder.original_identifier(original_identifier.clone());
+        builder.identifier(identifier);
+        builder.field_mappings(field_mappings);
 
-        if let Some(cat1) = cat1 {
-            builder.cat1(cat1);
-        }
-        if let Some(cat2) = data_to_string(&row[1]) {
-            builder.cat2(cat2);
-        }
-        if let Some(name) = data_to_string(&row[2]) {
-            if builder.name.is_none() {
-                builder.name(format_name(&name));
-            }
-        }
-        if let Some(version) = data_to_string(&row[3]) {
-            builder.version(version);
-        }
-        if let Some(data_year) = data_to_string(&row[4]) {
-            builder.data_year(data_year);
-        }
-        if let Some(shapefile_matcher) = data_to_string(&row[5]) {
-            let mut matchers = builder.shapefile_matcher.clone().unwrap_or(vec![]);
-            matchers.extend(split_shapefile_matcher(&shapefile_matcher));
+        if let Some(matchers) = variant
+            .shapefile_hint
+            .as_ref()
+            .map(|s| split_shapefile_matcher(s))
+            .filter(|m| !m.is_empty())
+        {
             builder.shapefile_matcher(matchers);
         }
 
-        if let Some((field_name, shape_name)) = data_to_string(&row[6]).zip(data_to_string(&row[7]))
-        {
-            let mut mappings = builder.field_mappings.clone().unwrap_or(vec![]);
-            mappings.push((field_name, shape_name));
-            builder.field_mappings(mappings);
-        }
+        let metadata = builder
+            .build()
+            .with_context(|| "when building shapefile metadata from API")?;
+        mappings.push(metadata);
     }
 
-    // last row
-    if let Ok(metadata) = builder.build() {
-        out.extend(apply_multi_output_rules(metadata));
-    }
+    let mappings = if mappings.len() == 1 && mappings[0].identifier == original_identifier {
+        apply_multi_output_rules(mappings.into_iter().next().unwrap())
+    } else {
+        mappings
+    };
 
-    Ok(out)
-}
-
-static MAPPING_DEFS: OnceCell<Vec<ShapefileMetadata>> = OnceCell::const_new();
-pub async fn mapping_defs() -> Result<&'static Vec<ShapefileMetadata>> {
-    MAPPING_DEFS
-        .get_or_try_init(|| async { parse_mapping_file().await })
-        .await
-}
-
-pub async fn find_mapping_def_for_entry(identifier: &str) -> Result<Vec<ShapefileMetadata>> {
-    let defs = mapping_defs().await?;
-    Ok(defs
-        .iter()
-        .filter(|def| def.original_identifier == identifier)
-        .cloned()
-        .collect::<Vec<_>>())
+    Ok(mappings)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scraper::{data_page, initial};
+    use std::sync::Arc;
 
     #[tokio::test]
-    async fn test_parse_mapping_file() {
-        let result = parse_mapping_file().await;
-        assert!(result.is_ok());
-        let data = &result.unwrap();
+    async fn test_mapping_defs_for_dataset() {
+        let initial = initial::scrape().await.unwrap();
+        let data_item = initial
+            .data
+            .into_iter()
+            .find(|item| item.identifier == "N03")
+            .unwrap();
+        let page = data_page::scrape(&data_item.identifier, Some(2024))
+            .await
+            .unwrap();
+        let dataset = Dataset {
+            initial_item: data_item,
+            page: Arc::new(page),
+            zip_file_paths: vec![],
+        };
 
-        let metadata = &data[0];
-        assert_eq!(metadata.cat1, "2. 政策区域");
-        assert_eq!(metadata.cat2, "大都市圏・条件不利地域");
-        assert_eq!(metadata.name, "三大都市圏計画区域");
-        assert_eq!(metadata.version, "2003年度版");
-        assert_eq!(metadata.data_year, "平成15年度");
-        assert_eq!(
-            metadata.shapefile_matcher,
-            vec!["A03-YY_SYUTO-g_ThreeMajorMetroPlanArea.shp"]
-        );
-        assert_eq!(metadata.field_mappings.len(), 8);
-
-        // find 医療圏
-        let metadata = data
-            .iter()
-            .filter(|m| m.name.contains("医療圏"))
-            .collect::<Vec<_>>();
-        assert_eq!(metadata.len(), 3);
-        assert_eq!(
-            metadata.iter().map(|m| m.name.clone()).collect::<Vec<_>>(),
-            vec!["一次医療圏", "二次医療圏", "三次医療圏"]
-        );
+        let mappings = mapping_defs_for_dataset(&dataset).await.unwrap();
+        assert!(!mappings.is_empty());
+        assert!(mappings.iter().all(|m| !m.field_mappings.is_empty()));
     }
 }
