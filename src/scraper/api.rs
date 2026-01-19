@@ -44,6 +44,10 @@ pub struct DatasetAttribute {
     pub attr_type: String,
     #[serde(default)]
     pub type_ref_url: Option<Url>,
+    #[serde(default)]
+    pub type_ref_code: Option<Vec<String>>,
+    #[serde(default)]
+    pub type_ref_enum: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
