@@ -8,8 +8,6 @@ pub const API_BASE_URL: &str = "https://jpksj-api.kmproj.com/";
 #[derive(Debug, Clone, Deserialize)]
 pub struct DatasetListItem {
     pub name: String,
-    #[serde(default)]
-    pub description: String,
     pub category1_name: String,
     pub category2_name: String,
     pub id: String,
@@ -31,7 +29,6 @@ pub struct DatasetDetail {
     pub name: String,
     #[serde(default)]
     pub description: String,
-    pub id: String,
     pub versions: Vec<DatasetDetailVersion>,
 }
 
@@ -55,8 +52,6 @@ pub struct DatasetVariant {
     pub variant_name: String,
     pub variant_identifier: String,
     #[serde(default)]
-    pub geometry_type: Option<String>,
-    #[serde(default)]
     pub geometry_description: Option<String>,
     #[serde(default)]
     pub shapefile_hint: Option<String>,
@@ -75,13 +70,8 @@ pub struct DatasetFile {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DatasetVersionDetail {
-    pub name: String,
     #[serde(default)]
     pub description: String,
-    pub id: String,
-    pub id_with_version: String,
-    pub start_year: u32,
-    pub end_year: u32,
     #[serde(default)]
     pub variants: Vec<DatasetVariant>,
     #[serde(default)]
