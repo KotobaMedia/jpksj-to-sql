@@ -60,7 +60,7 @@ pub async fn matching_shapefiles_in_zip(
     let mut all_paths = {
         let shp_tmp = shp_tmp.clone();
         let zip_path = zip_path.clone();
-        if mapping.identifier == "A33" {
+        if mapping.original_identifier == "A33" {
             // A33 shapefiles don't match the regex, so we'll skip this part and
             // fall back to the expanded matchers, focusing on Polygon files only
             let expanded_matchers = vec![Regex::new(

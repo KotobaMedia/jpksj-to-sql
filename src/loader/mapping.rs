@@ -108,6 +108,10 @@ impl ShapefileMetadataBuilder {
 /// Splits and normalizes a shapefile matcher string into a vector of strings.
 fn split_shapefile_matcher(s: &str) -> Vec<String> {
     s.replace("\r\n", "\n")
+        // A38 variants use A38a/b/c in hints, but files are named A38-YY_#.shp.
+        .replace("A38a-", "A38-")
+        .replace("A38b-", "A38-")
+        .replace("A38c-", "A38-")
         .replace("A38-YY_PP_", "A38-YY_") // 医療圏のshapefile名が間違っている
         .split('\n')
         .map(|s| s.trim().to_string())
@@ -234,10 +238,13 @@ pub async fn mapping_defs_for_dataset(dataset: &Dataset) -> Result<Vec<Shapefile
             variant.variant_name.clone()
         };
 
-        let identifier = if variant.variant_identifier.trim().is_empty() {
+        let variant_identifier = variant.variant_identifier.trim();
+        let identifier = if variant_identifier.is_empty() {
+            original_identifier.clone()
+        } else if variant_identifier.eq_ignore_ascii_case(original_identifier.as_str()) {
             original_identifier.clone()
         } else {
-            variant.variant_identifier.clone()
+            format!("{}_{}", original_identifier, variant_identifier)
         };
 
         let mut builder = ShapefileMetadataBuilder::default();
@@ -268,7 +275,7 @@ pub async fn mapping_defs_for_dataset(dataset: &Dataset) -> Result<Vec<Shapefile
         mappings.push(metadata);
     }
 
-    let mappings = if mappings.len() == 1 && mappings[0].identifier == original_identifier {
+    let mappings = if mappings.len() == 1 {
         apply_multi_output_rules(mappings.into_iter().next().unwrap())
     } else {
         mappings
