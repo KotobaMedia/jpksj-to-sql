@@ -35,28 +35,29 @@ pub async fn create_vrt(
     let layer_name = bare_vrt.file_name().unwrap().to_str().unwrap();
     // let vrt_path = shape.with_extension("vrt");
 
-    let mut fields = String::new();
-    let attributes = get_attribute_list(&shapes[0])
-        .await
-        .with_context(|| format!("when getting attribute list for {}", &shapes[0].display()))?;
-    for (field_name, shape_name) in metadata.field_mappings.iter() {
-        // ignore attributes in the mapping that are not in the shapefile
-        if attributes.iter().find(|&attr| attr == shape_name).is_none() {
-            continue;
-        }
-        fields.push_str(&format!(
-            r#"<Field name="{}" src="{}" />"#,
-            field_name, shape_name
-        ));
-    }
-    if fields.is_empty() {
-        anyhow::bail!("No fields found in shapefile");
-    }
-
     let mut layers = String::new();
+    let mut any_fields = false;
     for shape in shapes {
         let bare_shape = shape.with_extension("");
         let shape_filename = bare_shape.file_name().unwrap().to_str().unwrap();
+        let attributes = get_attribute_list(shape)
+            .await
+            .with_context(|| format!("when getting attribute list for {}", &shape.display()))?;
+        let mut fields = String::new();
+        for (field_name, shape_name) in metadata.field_mappings.iter() {
+            // ignore attributes in the mapping that are not in the shapefile
+            if attributes.iter().find(|&attr| attr == shape_name).is_none() {
+                continue;
+            }
+            fields.push_str(&format!(
+                r#"<Field name="{}" src="{}" />"#,
+                field_name, shape_name
+            ));
+        }
+        if fields.is_empty() {
+            continue;
+        }
+        any_fields = true;
         let encoding = detect_encoding(shape)
             .await
             .with_context(|| format!("when detecting encoding for {}", &shape.display()))?;
@@ -73,6 +74,9 @@ pub async fn create_vrt(
             encoding,
             fields
         ));
+    }
+    if !any_fields {
+        anyhow::bail!("No fields found in shapefiles");
     }
 
     let vrt = format!(
@@ -124,11 +128,16 @@ pub async fn load_to_postgres(vrt: &Path, postgres_url: &str) -> Result<()> {
 }
 
 pub async fn load_to_file(vrt: &Path, output_path: &Path, driver: &str) -> Result<()> {
+    if output_path.exists() {
+        tokio::fs::remove_file(output_path)
+            .await
+            .with_context(|| format!("when removing {}", output_path.display()))?;
+    }
+
     let mut cmd = Command::new("ogr2ogr");
     let output = cmd
         .arg("-f")
         .arg(driver)
-        .arg("-overwrite")
         .arg("-nlt")
         .arg("PROMOTE_TO_MULTI")
         .arg(output_path)

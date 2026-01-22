@@ -27,8 +27,8 @@ async fn load(
 
     let identifier = &dataset.initial_item.identifier;
 
-    // first, let's get the entries for this dataset from the mapping file
-    let mappings = mapping::find_mapping_def_for_entry(&identifier)
+    // first, let's get the entries for this dataset from the API metadata
+    let mappings = mapping::mapping_defs_for_dataset(dataset)
         .await
         .with_context(|| {
             format!(

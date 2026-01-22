@@ -132,12 +132,25 @@ impl MetadataConnection {
             columns.push(column_metadata);
         }
 
+        let desc = data_page.metadata.fundamental.get("内容").cloned().or_else(|| {
+            let trimmed = data_item.name.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        });
+
         let table_metadata = TableMetadata {
             name: metadata.name.clone(),
-            desc: data_page.metadata.fundamental.get("内容").cloned(),
+            desc,
             source: Some("国土数値情報".to_string()),
-            source_url: Some(data_item.url.clone()),
-            license: Some(data_item.usage.clone()),
+            source_url: Some(data_page.url.clone()),
+            license: if data_item.usage.is_empty() {
+                None
+            } else {
+                Some(data_item.usage.clone())
+            },
             license_url: None,
             primary_key: Some("ogc_fid".to_string()),
             columns,
