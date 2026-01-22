@@ -6,7 +6,12 @@ use clap::Parser;
 #[command(version)]
 pub struct Cli {
     /// 出力フォーマット（GDAL driver 名、または PostgreSQL を示す文字列）
-    #[arg(value_name = "OUTPUT_FORMAT")]
+    /// 指定しない場合は postgresql が使用されます
+    #[arg(
+        long = "format",
+        value_name = "OUTPUT_FORMAT",
+        default_value = "postgresql"
+    )]
     pub output_format: String,
 
     /// 出力先（PostgreSQL の場合は接続文字列、その他は出力ディレクトリ）
@@ -14,7 +19,7 @@ pub struct Cli {
     pub output_destination: String,
 
     /// 中間ファイルの保存先 (Zip等)
-    /// デフォルトは `./tmp` となります。
+    /// デフォルトはシステムのtmpディレクトリを利用します
     #[arg(long)]
     pub tmp_dir: Option<PathBuf>,
 

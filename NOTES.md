@@ -117,7 +117,7 @@ ogr2ogr -f FlatGeobuf a40_normalized.fgb PG:"$PG_CONN_STR" a40_normalized
 # `A38` - 医療圏
 
 ```
-cargo run -- --filter-identifiers A38 FlatGeobuf ./tmp/out
+cargo run -- --filter-identifiers A38 --format FlatGeobuf ./tmp/out
 ```
 
 ```
@@ -135,7 +135,7 @@ tippecanoe -n "医療圏" -N "3次、2次、1次医療圏のポリゴンデー�
 # `N03` - 行政区域
 
 ```
-cargo run -- --filter-identifiers N03 FlatGeobuf ./tmp/out
+cargo run -- --filter-identifiers N03 --format FlatGeobuf ./tmp/out
 ```
 
 タイル化
