@@ -1,7 +1,7 @@
 use crate::context;
 use crate::loader::gdal;
 use crate::loader::{mapping, zip_traversal, OutputTarget};
-use crate::metadata::MetadataConnection;
+use crate::metadata::{self, ColumnSchema, MetadataConnection};
 use crate::scraper::Dataset;
 use anyhow::{Context, Result};
 use async_channel::unbounded;
@@ -78,6 +78,18 @@ async fn load(
             false
         };
 
+        let needs_load = !(skip_if_exists && already_exists);
+        let needs_vrt = needs_load
+            || (matches!(output, OutputTarget::File { .. }) && !shapefiles.is_empty());
+        let mut vrt_path = None;
+        if needs_vrt {
+            let path = vrt_tmp.join(&identifier).with_extension("vrt");
+            gdal::create_vrt(&path, &shapefiles, &mapping)
+                .await
+                .context("when creating VRT")?;
+            vrt_path = Some(path);
+        }
+
         if skip_if_exists && already_exists {
             match output {
                 OutputTarget::Postgres { .. } => {
@@ -91,11 +103,10 @@ async fn load(
                     }
                 }
             }
-        } else {
-            let vrt_path = vrt_tmp.join(&identifier).with_extension("vrt");
-            gdal::create_vrt(&vrt_path, &shapefiles, &mapping)
-                .await
-                .context("when creating VRT")?;
+        } else if needs_load {
+            let vrt_path = vrt_path
+                .as_ref()
+                .ok_or_else(|| anyhow::anyhow!("missing VRT path for {}", identifier))?;
             match output {
                 OutputTarget::Postgres { postgres_url } => {
                     gdal::load_to_postgres(&vrt_path, postgres_url)
@@ -104,6 +115,7 @@ async fn load(
                 }
                 OutputTarget::File { .. } => {
                     let output_path = output_path
+                        .as_ref()
                         .ok_or_else(|| anyhow::anyhow!("missing output path for {}", identifier))?;
                     let driver = output
                         .gdal_driver()
@@ -131,6 +143,46 @@ async fn load(
                 .create_dataset(&identifier, &metadata)
                 .await
                 .context("when creating dataset metadata")?;
+        } else if let OutputTarget::File { .. } = output {
+            let schema_source = if let Some(vrt_path) = vrt_path.as_ref() {
+                vrt_path.as_path()
+            } else {
+                output_path
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("missing output path for {}", identifier))?
+                    .as_path()
+            };
+            let schema = gdal::layer_schema(schema_source).await.with_context(|| {
+                format!("when reading schema from {}", schema_source.display())
+            })?;
+
+            let mut columns = Vec::with_capacity(schema.fields.len() + 2);
+            columns.push(ColumnSchema {
+                name: "ogc_fid".to_string(),
+                data_type: "int4".to_string(),
+            });
+            for field in schema.fields {
+                columns.push(ColumnSchema {
+                    name: field.name,
+                    data_type: gdal::ogr_type_to_postgres(&field.ogr_type),
+                });
+            }
+            if let Some(geom_type) = schema.geometry_type {
+                let geom_type = gdal::promote_geometry_type(&geom_type);
+                let srid = schema.geometry_srid.unwrap_or(-1);
+                columns.push(ColumnSchema {
+                    name: "geom".to_string(),
+                    data_type: format!("geometry({}, {})", geom_type, srid),
+                });
+            }
+
+            let metadata = metadata::build_metadata_from_columns(&mapping, dataset, columns);
+            let output_path = output_path
+                .as_ref()
+                .ok_or_else(|| anyhow::anyhow!("missing output path for {}", identifier))?;
+            let metadata_path = output_path.with_extension("metadata.json");
+            let json = serde_json::to_string_pretty(&metadata)?;
+            tokio::fs::write(&metadata_path, json).await?;
         }
     }
     Ok(())

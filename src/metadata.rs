@@ -9,6 +9,93 @@ use tokio_postgres::{Client, NoTls};
 
 const INIT_SQL: &str = include_str!("../data/schema.sql");
 
+#[derive(Clone, Debug)]
+pub struct ColumnSchema {
+    pub name: String,
+    pub data_type: String,
+}
+
+pub fn build_metadata_from_columns(
+    metadata: &ShapefileMetadata,
+    dataset: &Dataset,
+    columns: Vec<ColumnSchema>,
+) -> TableMetadata {
+    let data_item = &dataset.initial_item;
+    let data_page = &dataset.page;
+
+    let dp_col_vec: Vec<_> = data_page.metadata.attribute.clone().into_values().collect();
+
+    let mut out_columns: Vec<ColumnMetadata> = vec![];
+    for column in columns {
+        let column_name = column.name.clone();
+        let mut column_metadata = ColumnMetadata {
+            name: column_name.clone(),
+            desc: None,
+            data_type: column.data_type,
+            foreign_key: None,
+            enum_values: None,
+        };
+
+        if let Some(column) = dp_col_vec.iter().find(|c| c.name == column_name) {
+            column_metadata.desc = Some(column.description.clone());
+
+            if column.attr_type.contains("行政区域コード") {
+                column_metadata.foreign_key = Some(ColumnForeignKeyDetails {
+                    foreign_table: "admini_boundary_cd".to_string(),
+                    foreign_column: "改正後のコード".to_string(),
+                });
+            }
+
+            use crate::scraper::data_page::RefType;
+            column_metadata.enum_values = match &column.r#ref {
+                Some(RefType::Code(map)) => Some(
+                    map.iter()
+                        .map(|(key, value)| ColumnEnumDetails {
+                            value: key.clone(),
+                            desc: Some(value.clone()),
+                        })
+                        .collect(),
+                ),
+                Some(RefType::Enum(vec)) => Some(
+                    vec.iter()
+                        .map(|value| ColumnEnumDetails {
+                            value: value.clone(),
+                            desc: None,
+                        })
+                        .collect(),
+                ),
+                None => None,
+            }
+        }
+
+        out_columns.push(column_metadata);
+    }
+
+    let desc = data_page.metadata.fundamental.get("内容").cloned().or_else(|| {
+        let trimmed = data_item.name.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed.to_string())
+        }
+    });
+
+    TableMetadata {
+        name: metadata.name.clone(),
+        desc,
+        source: Some("国土数値情報".to_string()),
+        source_url: Some(data_page.url.clone()),
+        license: if data_item.usage.is_empty() {
+            None
+        } else {
+            Some(data_item.usage.clone())
+        },
+        license_url: None,
+        primary_key: Some("ogc_fid".to_string()),
+        columns: out_columns,
+    }
+}
+
 #[derive(Clone)]
 pub struct MetadataConnection {
     client: Arc<Client>,
@@ -66,14 +153,7 @@ impl MetadataConnection {
             .await
             .with_context(|| "when querying columns from PostgreSQL")?;
 
-        // println!("[table: {}] Columns in DB: {:?}", table_name, columns_in_db);
-
-        let data_item = &dataset.initial_item;
-        let data_page = &dataset.page;
-
-        let dp_col_vec: Vec<_> = data_page.metadata.attribute.clone().into_values().collect();
-
-        let mut columns: Vec<ColumnMetadata> = vec![];
+        let mut columns: Vec<ColumnSchema> = vec![];
         for db_column in columns_in_db {
             let column_name: String = db_column.get(1);
             let column_type: String = db_column.get(2);
@@ -89,74 +169,13 @@ impl MetadataConnection {
                 column_type
             };
 
-            let mut column_metadata = ColumnMetadata {
-                name: column_name.clone(),
-                desc: None,
+            columns.push(ColumnSchema {
+                name: column_name,
                 data_type: column_type,
-                foreign_key: None,
-                enum_values: None,
-            };
-
-            if let Some(column) = dp_col_vec.iter().find(|c| c.name == column_name) {
-                column_metadata.desc = Some(column.description.clone());
-
-                if column.attr_type.contains("行政区域コード") {
-                    column_metadata.foreign_key = Some(ColumnForeignKeyDetails {
-                        foreign_table: "admini_boundary_cd".to_string(),
-                        foreign_column: "改正後のコード".to_string(),
-                    });
-                }
-
-                use crate::scraper::data_page::RefType;
-                column_metadata.enum_values = match &column.r#ref {
-                    Some(RefType::Code(map)) => Some(
-                        map.iter()
-                            .map(|(key, value)| ColumnEnumDetails {
-                                value: key.clone(),
-                                desc: Some(value.clone()),
-                            })
-                            .collect(),
-                    ),
-                    Some(RefType::Enum(vec)) => Some(
-                        vec.iter()
-                            .map(|value| ColumnEnumDetails {
-                                value: value.clone(),
-                                desc: None,
-                            })
-                            .collect(),
-                    ),
-                    None => None,
-                }
-            }
-
-            columns.push(column_metadata);
+            });
         }
 
-        let desc = data_page.metadata.fundamental.get("内容").cloned().or_else(|| {
-            let trimmed = data_item.name.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
-        });
-
-        let table_metadata = TableMetadata {
-            name: metadata.name.clone(),
-            desc,
-            source: Some("国土数値情報".to_string()),
-            source_url: Some(data_page.url.clone()),
-            license: if data_item.usage.is_empty() {
-                None
-            } else {
-                Some(data_item.usage.clone())
-            },
-            license_url: None,
-            primary_key: Some("ogc_fid".to_string()),
-            columns,
-        };
-
-        Ok(table_metadata)
+        Ok(build_metadata_from_columns(metadata, dataset, columns))
     }
 
     pub async fn create_dataset(&self, identifier: &str, dataset: &TableMetadata) -> Result<()> {

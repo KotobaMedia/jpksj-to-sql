@@ -13,6 +13,7 @@
     * Feature ID は `ogc_fid`（ogr2ogr により自動生成）
 * `datasets` テーブルにメタデータが入っています
     * メタデータは [to-sql シリーズと共通](https://github.com/KotobaMedia/km-to-sql/)になっています
+* PostgreSQL 以外の出力形式の場合は、各データセットの出力ファイルに対応した `*.metadata.json` のサイドカーに同じメタデータが出力されます
 
 ### メタデータの形
 

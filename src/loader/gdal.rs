@@ -5,6 +5,19 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
+#[derive(Debug, Clone)]
+pub struct FieldSchema {
+    pub name: String,
+    pub ogr_type: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct LayerSchema {
+    pub fields: Vec<FieldSchema>,
+    pub geometry_type: Option<String>,
+    pub geometry_srid: Option<i32>,
+}
+
 pub async fn check_gdal_tools() -> Result<()> {
     let output = Command::new("ogrinfo")
         .arg("--version")
@@ -153,6 +166,90 @@ pub async fn load_to_file(vrt: &Path, output_path: &Path, driver: &str) -> Resul
     Ok(())
 }
 
+pub async fn layer_schema(path: &Path) -> Result<LayerSchema> {
+    let ogrinfo = Command::new("ogrinfo").arg("-json").arg(path).output().await?;
+
+    if !ogrinfo.status.success() {
+        let stderr = String::from_utf8_lossy(&ogrinfo.stderr);
+        anyhow::bail!("ogrinfo failed: {}", stderr);
+    }
+
+    let json: Value =
+        serde_json::from_slice(&ogrinfo.stdout).with_context(|| "when parsing ogrinfo JSON")?;
+
+    let fields = json
+        .pointer("/layers/0/fields")
+        .and_then(Value::as_array)
+        .ok_or_else(|| anyhow!("missing fields array"))?;
+
+    let mut out_fields = Vec::with_capacity(fields.len());
+    for field in fields {
+        let Some(name) = field.pointer("/name").and_then(Value::as_str) else {
+            continue;
+        };
+        let ogr_type = field
+            .pointer("/type")
+            .and_then(Value::as_str)
+            .unwrap_or("String");
+        out_fields.push(FieldSchema {
+            name: name.to_string(),
+            ogr_type: ogr_type.to_string(),
+        });
+    }
+
+    let geometry_type = json
+        .pointer("/layers/0/geometryFields/0/type")
+        .and_then(Value::as_str)
+        .map(|s| s.to_string());
+
+    let geometry_srid = extract_geometry_srid(&json);
+
+    Ok(LayerSchema {
+        fields: out_fields,
+        geometry_type,
+        geometry_srid,
+    })
+}
+
+pub fn ogr_type_to_postgres(ogr_type: &str) -> String {
+    let normalized = ogr_type.trim().to_ascii_lowercase();
+    let mapped = match normalized.as_str() {
+        "string" => "varchar",
+        "integer" => "int4",
+        "integer64" => "int8",
+        "real" => "float8",
+        "date" => "date",
+        "datetime" => "timestamp",
+        "time" => "time",
+        "binary" => "bytea",
+        "boolean" => "bool",
+        "integerlist" => "int4[]",
+        "integer64list" => "int8[]",
+        "reallist" => "float8[]",
+        "stringlist" => "varchar[]",
+        "booleanlist" => "bool[]",
+        _ => "varchar",
+    };
+    mapped.to_string()
+}
+
+pub fn promote_geometry_type(geom_type: &str) -> String {
+    let trimmed = geom_type.trim();
+    if trimmed.is_empty() {
+        return "GEOMETRY".to_string();
+    }
+    let upper = trimmed.to_ascii_uppercase();
+    if upper.starts_with("MULTI")
+        || upper == "GEOMETRY"
+        || upper == "GEOMETRYCOLLECTION"
+        || upper == "UNKNOWN"
+    {
+        upper
+    } else {
+        format!("MULTI{}", upper)
+    }
+}
+
 pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
     let layer_name_lower = layer_name.to_lowercase();
     let output = Command::new("ogrinfo")
@@ -165,6 +262,30 @@ pub async fn has_layer(postgres_url: &str, layer_name: &str) -> Result<bool> {
         .await?;
 
     Ok(output.status.success())
+}
+
+fn extract_geometry_srid(json: &Value) -> Option<i32> {
+    let id = json
+        .pointer("/layers/0/geometryFields/0/coordinateSystem/projjson/id")
+        .or_else(|| json.pointer("/layers/0/geometryFields/0/coordinateSystem/id"))?;
+
+    match id {
+        Value::Object(map) => {
+            let authority = map.get("authority").and_then(Value::as_str)?;
+            if !authority.eq_ignore_ascii_case("EPSG") {
+                return None;
+            }
+            let code = map.get("code").and_then(Value::as_i64)?;
+            i32::try_from(code).ok()
+        }
+        Value::String(value) => {
+            let value = value.trim();
+            value
+                .strip_prefix("EPSG:")
+                .and_then(|code| code.parse::<i32>().ok())
+        }
+        _ => None,
+    }
 }
 
 async fn get_attribute_list(shape: &Path) -> Result<Vec<String>> {
