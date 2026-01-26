@@ -101,10 +101,7 @@ pub async fn scrape(identifier: &str, year: Option<u32>) -> Result<DataPage> {
         .files
         .into_iter()
         .map(|file| {
-            let year_str = file
-                .year
-                .filter(|y| *y > 0)
-                .map(|y| format!("{}年", y));
+            let year_str = file.year.filter(|y| *y > 0).map(|y| format!("{}年", y));
             DataItem {
                 area: file.area,
                 crs: String::new(),
@@ -172,9 +169,7 @@ async fn build_metadata_from_api(
         dataset.name.trim().to_string()
     };
 
-    metadata
-        .fundamental
-        .insert("内容".to_string(), content);
+    metadata.fundamental.insert("内容".to_string(), content);
 
     let mut attr_map: HashMap<String, AttributeMetadata> = HashMap::new();
     for variant in &version_detail.variants {
@@ -187,9 +182,8 @@ async fn build_metadata_from_api(
                 // AdminiBoundary_CD.xlsx is handled separately in admini_boundary.rs
                 None
             } else {
-                parse_ref_from_attribute(attr).with_context(|| {
-                    format!("when parsing ref list for {}", attr.attribute_name)
-                })?
+                parse_ref_from_attribute(attr)
+                    .with_context(|| format!("when parsing ref list for {}", attr.attribute_name))?
             };
             attr_map.insert(
                 attr.attribute_name.clone(),
@@ -384,7 +378,7 @@ mod tests {
         let lg_code = page.metadata.attribute.get("N03_007").unwrap();
         assert!(lg_code.name.contains("全国地方公共団体コード"));
         assert!(lg_code.description.contains("JIS X 0401"));
-        assert!(lg_code.attr_type.contains("コードリスト"));
+        assert!(lg_code.attr_type.contains("CodeList"));
         assert!(lg_code
             .ref_url
             .as_ref()
