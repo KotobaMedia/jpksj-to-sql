@@ -112,7 +112,18 @@ GeoParquet/GeoJSON/FlatGeobuf で出力する場合は、`--format` で GDAL dri
 jpksj-to-sql --format GeoParquet ./output
 jpksj-to-sql --format GeoJSON ./output
 jpksj-to-sql --format FlatGeobuf ./output
+jpksj-to-sql --format CSV ./output
 ```
+
+属性名を日本語へ変換せず、Shapefile内の元のカラム名をそのまま出力する場合は
+`--no-column-name-mapping` を指定します。例えば、将来推計人口メッシュをCSVへ
+出力する場合は次のように実行します。
+
+```
+jpksj-to-sql --format CSV --filter-identifiers m1kr6 --no-column-name-mapping ./output
+```
+
+この場合、`MESH_ID` や `PT00_2025` などのカラム名が変換されずに出力されます。
 
 macOS の場合、GitHub Release からダウンロードしたバイナリが Gatekeeper によりブロックされることがあります。その場合は、次のコマンドで実行を許可できます: `xattr -d com.apple.quarantine ./jpksj-to-sql`
 

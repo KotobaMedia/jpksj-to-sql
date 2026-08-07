@@ -43,8 +43,30 @@ pub struct Cli {
     /// 指定しない場合は最新のデータセットが使用されます
     #[arg(long)]
     pub year: Option<u32>,
+
+    /// 属性名を日本語へ変換せず、入力Shapefileのカラム名をそのまま使用します
+    #[arg(long)]
+    pub no_column_name_mapping: bool,
 }
 
 pub fn main() -> Cli {
     Cli::parse()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn column_name_mapping_is_enabled_by_default() {
+        let cli = Cli::try_parse_from(["jpksj-to-sql", "./output"]).unwrap();
+        assert!(!cli.no_column_name_mapping);
+    }
+
+    #[test]
+    fn column_name_mapping_can_be_disabled() {
+        let cli =
+            Cli::try_parse_from(["jpksj-to-sql", "--no-column-name-mapping", "./output"]).unwrap();
+        assert!(cli.no_column_name_mapping);
+    }
 }

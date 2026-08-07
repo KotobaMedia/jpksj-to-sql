@@ -17,6 +17,7 @@ async fn load(
     dataset: &Dataset,
     output: &OutputTarget,
     skip_if_exists: bool,
+    preserve_source_column_names: bool,
     metadata_conn: Option<&MetadataConnection>,
 ) -> Result<()> {
     let tmp = context::tmp();
@@ -84,7 +85,7 @@ async fn load(
         let mut vrt_path = None;
         if needs_vrt {
             let path = vrt_tmp.join(&identifier).with_extension("vrt");
-            gdal::create_vrt(&path, &shapefiles, &mapping)
+            gdal::create_vrt(&path, &shapefiles, &mapping, preserve_source_column_names)
                 .await
                 .context("when creating VRT")?;
             vrt_path = Some(path);
@@ -206,6 +207,7 @@ impl LoadQueue {
         let Loader {
             output,
             skip_if_exists,
+            preserve_source_column_names,
             ..
         } = loader;
 
@@ -228,6 +230,7 @@ impl LoadQueue {
             let pb_sender = pb_status_sender.clone();
             let output = output.clone();
             let skip_if_exists = *skip_if_exists;
+            let preserve_source_column_names = *preserve_source_column_names;
             let metadata_conn = metadata_conn.clone();
             set.spawn(async move {
                 while let Ok(item) = receiver.recv().await {
@@ -240,7 +243,14 @@ impl LoadQueue {
                         })
                         .await
                         .unwrap();
-                    let result = load(&item, &output, skip_if_exists, metadata_conn.as_ref()).await;
+                    let result = load(
+                        &item,
+                        &output,
+                        skip_if_exists,
+                        preserve_source_column_names,
+                        metadata_conn.as_ref(),
+                    )
+                    .await;
                     if let Err(e) = result {
                         let identifier = item.initial_item.identifier.clone();
                         eprintln!(

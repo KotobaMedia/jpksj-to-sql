@@ -40,6 +40,7 @@ async fn main() -> Result<()> {
         .datasets(datasets)
         .output(output)
         .skip_if_exists(args.skip_if_exists)
+        .preserve_source_column_names(args.no_column_name_mapping)
         .build()
         .context("while building loader")?;
     loader
