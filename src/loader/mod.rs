@@ -21,6 +21,8 @@ pub struct Loader {
     datasets: Vec<Dataset>,
     output: OutputTarget,
     skip_if_exists: bool,
+    #[builder(default)]
+    preserve_source_column_names: bool,
 }
 
 impl Loader {

@@ -39,6 +39,7 @@ pub async fn create_vrt(
     out: &Path,
     shapes: &Vec<PathBuf>,
     metadata: &ShapefileMetadata,
+    preserve_source_column_names: bool,
 ) -> Result<()> {
     if shapes.is_empty() {
         anyhow::bail!("No shapefiles found");
@@ -57,11 +58,11 @@ pub async fn create_vrt(
             .await
             .with_context(|| format!("when getting attribute list for {}", &shape.display()))?;
         let mut fields = String::new();
-        for (field_name, shape_name) in metadata.field_mappings.iter() {
-            // ignore attributes in the mapping that are not in the shapefile
-            if attributes.iter().find(|&attr| attr == shape_name).is_none() {
-                continue;
-            }
+        for (field_name, shape_name) in fields_for_vrt(
+            &attributes,
+            &metadata.field_mappings,
+            preserve_source_column_names,
+        ) {
             fields.push_str(&format!(
                 r#"<Field name="{}" src="{}" />"#,
                 field_name, shape_name
@@ -108,6 +109,26 @@ pub async fn create_vrt(
         .with_context(|| format!("when writing VRT to {}", &out.display()))?;
 
     Ok(())
+}
+
+fn fields_for_vrt(
+    attributes: &[String],
+    field_mappings: &[(String, String)],
+    preserve_source_column_names: bool,
+) -> Vec<(String, String)> {
+    if preserve_source_column_names {
+        return attributes
+            .iter()
+            .map(|attribute| (attribute.clone(), attribute.clone()))
+            .collect();
+    }
+
+    field_mappings
+        .iter()
+        // Ignore mappings for attributes that are not present in the shapefile.
+        .filter(|(_, shape_name)| attributes.iter().any(|attr| attr == shape_name))
+        .cloned()
+        .collect()
 }
 
 pub async fn load_to_postgres(vrt: &Path, postgres_url: &str) -> Result<()> {
@@ -409,6 +430,35 @@ pub async fn detect_encoding(shape: &Path) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    use super::fields_for_vrt;
+
+    #[test]
+    fn test_fields_for_vrt_uses_readable_names_by_default() {
+        let attributes = vec!["MESH_ID".to_string(), "PT00_2025".to_string()];
+        let mappings = vec![
+            ("メッシュコード".to_string(), "MESH_ID".to_string()),
+            ("将来人口".to_string(), "PT00_20XX".to_string()),
+        ];
+
+        assert_eq!(
+            fields_for_vrt(&attributes, &mappings, false),
+            vec![("メッシュコード".to_string(), "MESH_ID".to_string())]
+        );
+    }
+
+    #[test]
+    fn test_fields_for_vrt_can_preserve_every_source_name() {
+        let attributes = vec!["MESH_ID".to_string(), "PT00_2025".to_string()];
+        let mappings = vec![("メッシュコード".to_string(), "MESH_ID".to_string())];
+
+        assert_eq!(
+            fields_for_vrt(&attributes, &mappings, true),
+            vec![
+                ("MESH_ID".to_string(), "MESH_ID".to_string()),
+                ("PT00_2025".to_string(), "PT00_2025".to_string()),
+            ]
+        );
+    }
 
     #[tokio::test]
     async fn test_detect_encoding() {
